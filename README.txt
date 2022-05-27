@@ -1,11 +1,20 @@
 # An open, fully-automated EEG pipeline
 
-Here goes a simple overview of the project
+This is a workflow that preprocess EEG data and extracts several brain features. The input data needs to be in BIDS format.
 
 
 ## Description
+The preprocessing is based on Pernet et. al 2019. The main steps are:
+- Detection of bad channels
+- Re-referencing to the average reference
+- ICA. Detection and removal of artifactual independent components
+- Detection of bad time segments
 
-An in-depth description
+The following brain features are extracted
+- Power spectrum (sensor space)
+- Peak frequency (sensor space)
+- Functional connectivy: debiased weighted PLI and Amplitude Envelope Correlation (source space)
+- Network measures based on the FC measures.
 
 ## Getting started
 
@@ -14,6 +23,7 @@ An in-depth description
 * EEGLab v2022.0
 * Fieldtrip
 * Brain connectivity toolbox v 2019_03_03(https://sites.google.com/site/bctnet/)
+
 The following EEGLab plugins need to be downloaded and saved in eeglab/plugins
 * bids-matlb-tool v6.1 (https://github.com/sccn/bids-matlab-tools)
 * clean_rawdata v2.7 (https://github.com/sccn/clean_rawdata)
@@ -29,8 +39,6 @@ Modifications that need to be made to files/folders. Modify the define_params.m 
 
 ### Executing pipeline
 * Type on the matlab console ´main_pipeline´ after you have modified the define_params.m
-
-## Help
 
 ## Authors
 Cristina Gil Avila, cristina.gil@tum.de

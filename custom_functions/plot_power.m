@@ -11,6 +11,7 @@ freqNames = fields(params.freq_band)';
 power_fig = figure('Position',[506 844 1131 509], 'visible', 'off');
 plot(power.freq,avgpow,'k');
 hold on
+box off
 title(['Average PSD of the measurement ' bidsID],'Interpreter','None');
 ylabel('Power (uV/Hz)');
 xlabel('Frequency (Hz)');

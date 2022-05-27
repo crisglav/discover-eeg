@@ -80,7 +80,7 @@ params.tapsmofrq = 1;
 % Head model
 params.volpath = fullfile(params.fieldtrip_path,'template','headmodel','standard_bem.mat');
 % Atlas positions
-params.atlaspath = fullfile('parcellations','Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
+params.atlaspath = fullfile('/rechenmagd4/Experiments/2021_preprocessing','parcellations','Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
 
 % Graph measures
 params.connMatrix_threshold = 0.2;
@@ -90,6 +90,11 @@ params.connMatrix_threshold = 0.2;
 params.figures_preprocessing_folder = fullfile(params.preprocessed_data_path,'preprocessing_visualization');
 if ~exist(params.figures_preprocessing_folder,'dir')
     mkdir(params.figures_preprocessing_folder);
+end
+% Folder with reports
+params.reports_folder = fullfile(params.preprocessed_data_path,'reports');
+if ~exist(params.reports_folder,'dir')
+    mkdir(params.reports_folder);
 end
 % Folder that will contain the EEG_features figures
 params.figures_folder = fullfile(params.preprocessed_data_path,'EEG_features','figures');
