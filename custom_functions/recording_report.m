@@ -3,7 +3,7 @@ function recording_report(params,bidsID)
 import mlreportgen.report.*
 import mlreportgen.dom.*
 
-f = strcat('report-' ,bidsID);
+f = strcat(bidsID, '_report');
 rpt = Report(fullfile(params.reports_folder, f), 'pdf');
 
 % Title page

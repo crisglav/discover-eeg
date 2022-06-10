@@ -61,8 +61,9 @@ EEG = pop_clean_rawdata(EEG,'FlatlineCriterion', params.FlatlineCriterion,...
 plot_badchannels(params,EEG);
 
 % 2. REREFERENCE TO AVERAGE REFERENCE
-EEG = pop_reref(EEG,[],'interpchan',[],'refloc', EEG(1).chaninfo.nodatchans);
-
+for iRec = 1:length(EEG)
+EEG(iRec) = pop_reref(EEG(iRec),[],'interpchan',~EEG(iRec).etc.clean)channelmask,'refloc', EEG(iRec).chaninfo.nodatchans);
+end
         
 
 % 3. REMOVE ARTIFACTS WITH ICA

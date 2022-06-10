@@ -1,11 +1,11 @@
 function data = load_preprocessed_data(params,bidsID)
     
-    % Load one subject data
+    % Load data
     x = strsplit(bidsID,'_');
     x = x(1:end-1);
     datapath = fullfile(params.preprocessed_data_path,x{:},'eeg',[bidsID '_eeg.set']);
     
-    hdr = ft_read_header(datapath); % all the bids information ins contained in the header of the original file
+    hdr = ft_read_header(datapath); % all the bids information is contained in the header of the original file
     cfg = [];
     cfg.dataset = datapath;
     data = ft_preprocessing(cfg);
