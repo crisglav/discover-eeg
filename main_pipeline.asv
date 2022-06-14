@@ -19,24 +19,32 @@ save(fullfile(params.preprocessed_data_path,'pipeline_params.mat'),'params');
 % file you can change 'bidschanloc to 'on'. Be careful with the orientation
 % of the electrodes. If the coordinate system of the electrodes.tsv is 'RAS'
 % (See *_coordsystem.json) you have to change the nose direction in EEGLAB to '+Y'
-% Ideally pop_importbids should look the orientation of the coord system
+% Uncomment next line in that case (Ideally pop_importbids should look the orientation of the coord system)
 % ALLEEG = pop_chanedit(ALLEEG, 'nosedir','+Y');
 % Note2: bidschanloc 'on' does not work if one specific task is selected. 
 
-% Make sure that the coordinate system is ok
-figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo', ALLEEG(1).chaninfo);
-
-% Apend reference channel
 for iRec=1:length(ALLEEG)
+    % Sometimes the type of electrode is lost. You can restore it here.
+%     eegchans = 1:ALLEEG(iRec).nbchan;
+    eegchans = 1:64;
+    emgchans = 65:66;
+    [ALLEEG(iRec).chanlocs(eegchans).type] = deal('EEG');
+    [ALLEEG(iRec).chanlocs(emgchans).type] = deal('EMG');
+    
+    % Select only EEG channels
+    ALLEEG(iRec) = pop_select(ALLEEG , 'channel', eegchans);
+    ALLEEG(iRec).chaninfo.removedchans = [];
+
+    % In case you want to add back the reference channel
+    if strcmp(params.addRefChannel,'yes')
     ALLEEG(iRec) = pop_chanedit(ALLEEG(iRec), 'append',ALLEEG(iRec).nbchan, ...
         'changefield', {ALLEEG(iRec).nbchan+1,'labels',bids.data(iRec).EEGReference},...
         'setref',{['1:' num2str(ALLEEG(iRec).nbchan)],bids.data(iRec).EEGReference});
+    end
 end      
 
-% Select only EEG channels
-% eegchans = find(contains(lower({ALLEEG(1).chanlocs.type}),'eeg'));
-eegchans = 1:64;
-ALLEEG = pop_select(ALLEEG , 'channel', eegchans);
+% Make sure that the coordinate system is ok
+% figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo', ALLEEG(1).chaninfo);
 
 CURRENTSTUDY = 1;
 EEG = ALLEEG;
@@ -56,15 +64,18 @@ EEG = pop_clean_rawdata(EEG,'FlatlineCriterion', params.FlatlineCriterion,...
                             'Distance','Euclidian',...
                             'WindowCriterionTolerances','off');
 
-% Visualization of bad channels. If you set 'FuseChanRej' on, the union of
+% Visualization of detected bad channels. If you set 'FuseChanRej' on, the union of
 % bad channels in all tasks is rejected!
 plot_badchannels(params,EEG);
 
 % 2. REREFERENCE TO AVERAGE REFERENCE
-for iRec = 1:length(EEG)
-EEG(iRec) = pop_reref(EEG(iRec),[],'interpchan',~EEG(iRec).etc.clean)channelmask,'refloc', EEG(iRec).chaninfo.nodatchans);
+if strcmp(params.addRefChannel,'yes')
+    % If you want to add back the reference channel
+    EEG = pop_reref(EEG,[],'interpchan',[],'refloc', EEG(1).chaninfo.nodatchans);
+else
+    % If you don't want to add back the reference channel (original version)
+    EEG = pop_reref(EEG,[],'interpchan',[]);
 end
-        
 
 % 3. REMOVE ARTIFACTS WITH ICA
 EEG = pop_runica(EEG,'icatype','runica','concatcond','on');
@@ -129,6 +140,9 @@ for iRec=1:size(EEG,2)
     EEG(iRec).event = events;
 end
 EEG = pop_epoch(EEG,{'epoch_start'},[0 params.epoch_length],'epochinfo','yes');
+
+% Set the coordinate system to RAS so that it can be correctly plotted in fieldtrip
+ALLEEG = pop_chanedit(ALLEEG, 'nosedir','-Y');
 
 % Save study
 EEG = eeg_checkset(EEG);

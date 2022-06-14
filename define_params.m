@@ -3,10 +3,10 @@
 % Cristina Gil, TUM, 10.06.2022
 function params = define_params()
 %% Data paths (raw and preprocessed data folders in BIDS format)
-params.study = 'CBP-mini';
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini';
+params.study = 'CGX_MS';
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini'; %'/rechenmagd3/CGX_MS/EEG/rawBIDS';
 % params.raw_data_path = 'C:\Users\Mitarbeiter\eeg_datasets\rawBIDS';
-params.preprocessed_data_path = fullfile(params.raw_data_path,'derivatives');
+params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives'); % '/rechenmagd3/CGX_MS/EEG/derivatives';
 params.task =  []'; % 'restEC'; % [] % if you want all tasks
 
 
@@ -36,8 +36,8 @@ addpath(fullfile('custom_functions'));
 % External functions (mainly from matlab central)
 % addpath(fullfile('external_functions'));
 %% PREPROCESSING PARAMETERS
-% Electrode template (Use a standard one or yours)
-params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
+% Add back reference channel
+params.addRefChannel = 'yes';
 
 % Bad channel rejection (Default parameters as defined in clean_rawdata())
 params.FlatlineCriterion = 5;
@@ -59,6 +59,9 @@ params.epoch_length = 10; % In seconds
 params.epoch_overlap = 0.5; % In percentage
 
 %%  FEATURE EXTRACTION PARAMETERS
+% Electrode template (Use a standard one or yours)
+params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
+
 % Frequency resolution
 params.freq_res = 1/params.epoch_length; % In Herz
 params.freq_res_connectivity = 0.5; % In Herz. Increase the frequency resolution in computation of connectivity measures to speed up the computation time.
