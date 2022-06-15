@@ -6,7 +6,7 @@ nRec = length(EEG);
 
 recmask = cellfun(@(x) isfield(x, 'clean_channel_mask'), etc); % Deal with the case where no bad channels were detected
 tmp = cellfun(@(x) x.clean_channel_mask, etc(recmask),'uni',0);
-badrecs = double(~cat(2,tmp{:}));
+badrecs = double(~cat(2,tmp{:})); % error here when you have datasets with different number of electrodes
 badchans = zeros(nChans,nRec);
 badchans(:,recmask) = badrecs;
 

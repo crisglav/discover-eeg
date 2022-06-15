@@ -3,8 +3,9 @@
 % Cristina Gil, TUM, 10.06.2022
 function params = define_params()
 %% Data paths (raw and preprocessed data folders in BIDS format)
-params.study = 'CGX_MS';
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini'; %'/rechenmagd3/CGX_MS/EEG/rawBIDS';
+params.study = 'FM-mini';
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/FM-mini'; 
+% params.raw_data_path = '/rechenmagd3/CGX_MS/EEG/rawBIDS';
 % params.raw_data_path = 'C:\Users\Mitarbeiter\eeg_datasets\rawBIDS';
 params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives'); % '/rechenmagd3/CGX_MS/EEG/derivatives';
 params.task =  []'; % 'restEC'; % [] % if you want all tasks
@@ -36,8 +37,25 @@ addpath(fullfile('custom_functions'));
 % External functions (mainly from matlab central)
 % addpath(fullfile('external_functions'));
 %% PREPROCESSING PARAMETERS
+params.bidschanloc = 'off'; % Default 'off', only set to on if you have nonstandard EEG channels or you recorded the electrodes positions
+params.nosedir = '+Y'; % 'RAS' % Needs to be specified in case bidschanloc = 'on'
+% Note: if you want to use the electrode location of the electrodes.tsv
+% file you can change 'bidschanloc to 'on'. Be careful with the orientation
+% of the electrodes. If the coordinate system of the electrodes.tsv is 'RAS'
+% (See *_coordsystem.json) you have to change the nose direction in EEGLAB to '+Y'
+% Note2: bidschanloc 'on' does not work if one specific task is selected. 
+
 % Add back reference channel
 params.addRefChannel = 'yes';
+params.RefCoord.X = 0.3761; % Coordinates of the reference electrode X, Y, Z in the same coordinate system as electrodes.tsv
+params.RefCoord.Y = 27.39;
+params.RefCoord.Z = 88.668;
+if strcmp(params.addRefChannel,'no') || strcmp(params.addRefChannel,'off')
+    params.RefCoord.X = [];
+    params.RefCoord.Y = [];
+    params.RefCoord.Z = [];
+
+end
 
 % Bad channel rejection (Default parameters as defined in clean_rawdata())
 params.FlatlineCriterion = 5;

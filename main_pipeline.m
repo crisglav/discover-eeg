@@ -13,93 +13,58 @@ save(fullfile(params.preprocessed_data_path,'pipeline_params.mat'),'params');
 %% Import data
 % Import raw data in BIDS format...
 [STUDY, ALLEEG, bids] = pop_importbids(params.raw_data_path,'outputdir',params.preprocessed_data_path,...
-    'studyName',params.study,'bidstask',params.task,'bidschanloc','on','bidsevent','off');
-
-% Note: if you want to use the electrode location of the electrodes.tsv
-% file you can change 'bidschanloc to 'on'. Be careful with the orientation
-% of the electrodes. If the coordinate system of the electrodes.tsv is 'RAS'
-% (See *_coordsystem.json) you have to change the nose direction in EEGLAB to '+Y'
-% Uncomment next line in that case (Ideally pop_importbids should look the orientation of the coord system)
-% ALLEEG = pop_chanedit(ALLEEG, 'nosedir','+Y');
-% Note2: bidschanloc 'on' does not work if one specific task is selected. 
-
+    'studyName',params.study,'bidstask',params.task,'bidschanloc',params.bidschanloc,'bidsevent','off');
 
 for iRec=1:length(ALLEEG)
     EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata'); % Retrieve data
     
     % Add Reference electrode
-    if strcmp(params.addRefChannel,'yes')
-        EEGtemp = pop_chanedit(EEGtemp, 'append',EEGtemp.nbchan, ...
-            'changefield', {EEGtemp.nbchan+1,'labels',bids.data(iRec).EEGReference},...
-            'changefield', {EEGtemp.nbchan+1, 'X', 0.3761}, ...
-            'changefield', {EEGtemp.nbchan+1, 'Y', 27.39}, ...
-            'changefield', {EEGtemp.nbchan+1, 'Z', 88.668},...
-            'setref',{['1:' num2str(EEGtemp.nbchan)],bids.data(iRec).EEGReference});
-        EEGtemp = pop_chanedit(EEGtemp, 'nosedir','+Y');
+    EEGtemp = pop_chanedit(EEGtemp, 'append',EEGtemp.nbchan, ...
+        'changefield', {EEGtemp.nbchan+1,'labels',bids.data(iRec).EEGReference},...
+        'changefield', {EEGtemp.nbchan+1, 'X', params.RefCoord.X}, ...
+        'changefield', {EEGtemp.nbchan+1, 'Y', params.RefCoord.Y}, ...
+        'changefield', {EEGtemp.nbchan+1, 'Z', params.RefCoord.Z},...
+        'setref',{['1:' num2str(EEGtemp.nbchan)],bids.data(iRec).EEGReference});
+    
+    if strcmp(params.bidschanloc, 'on')
+        % Set the elecrodes coordinate system
+        EEGtemp = pop_chanedit(EEGtemp, 'nosedir',params.nosedir);
+        % eeg channels
+        eegchans = find(contains(lower({ALLEEG(1).chanlocs.type}),'eeg'));
+    else
+        % Look for electrode positions in a standard template
+        EEGtemp=pop_chanedit(EEGtemp, 'lookup','standard_1005.elc');
+        non_standard_chans = cellfun(@isempty,{EEGtemp.chanlocs.X});
+        eegchans = find(~non_standard_chans);
+        if any(non_standard_chans)
+            clabels = {EEGtemp.chanlocs(non_standard_chans).labels};
+            c = sprintf('%s ', clabels{:});
+            warning(['The position of the channel(s) ' c 'was not found in a standard template and they will be removed. If you want to include them please specify their position in a electrodes.tsv and change define_params accordingly.']);           
+            % Add here electrode positions that are not standard
+%             EEGtemp=pop_chanedit(EEGtemp, ...
+%                 'changefield',{31 ,'X', -65}, 'changefield', {31, 'Y', 50}, 'changefield',{31, 'Z', 60}, ...
+%                 'changefield',{32 ,'X', 65}, 'changefield', {32, 'Y', 50}, 'changefield',{32, 'Z', 60});
+%             discarded = cellfun(@isempty,{EEGtemp.chanlocs.X});
+%             clabels = {EEGtemp.chanlocs(discarded).labels};
+%             c = sprintf('%s ', clabels{:});
+%             warning(['Channels ' c ' will be discarded.']);
+%             eegchans = find(~discarded);
+        end
     end
     
-    figure; topoplot([],EEGtemp.chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo', EEGtemp.chaninfo);
-    hold on,
-    figure; topoplot([],EEGtemp.chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
-    
-    % Default: take electrode positions from a standard template in MNI
-    % coordinates
-    EEGtemp=pop_chanedit(EEGtemp, 'lookup','standard_1005.elc'); % NEEDS dipfit
-    
-    % Add here electrode positions that are not standard
-    non_standard_chans = cellfun(@isempty,{EEGtemp.chanlocs.X});    
-    if any(non_standard_chans)
-        clabels = {EEGtemp.chanlocs(non_standard_chans).labels};
-        c = sprintf('%s ', clabels{:});
-        warning(['The position of the channels ' c 'was not found in a standard template. Please specify their position manually or they will not be considered for further preprocessing']);
-        
-        % Add here electrode positions that are not standard
-        EEGtemp=pop_chanedit(EEGtemp, ...
-        'changefield',{31 ,'X', -65}, 'changefield', {31, 'Y', 50}, 'changefield',{31, 'Z', 60}, ...
-        'changefield',{32 ,'X', 65}, 'changefield', {32, 'Y', 50}, 'changefield',{32, 'Z', 60});
-        
-        discarded = cellfun(@isempty,{EEGtemp.chanlocs.X});
-        clabels = {EEGtemp.chanlocs(discarded).labels};
-        c = sprintf('%s ', clabels{:});
-        warning(['Channels ' c ' will be discarded.']);
-
-    end    
+    % Select only EEG channels
+    EEGtemp = pop_select(EEGtemp, 'channel', eegchans);
+    EEGtemp.chaninfo.removedchans = [];
 
     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
     EEGtemp.data = 'in set file'; % clear data from memory
     ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
 end  
 
-% for iRec=1:length(ALLEEG)
-%     EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata'); % Retrieve data
-% 
-%     % Sometimes the type of electrode is lost. You can restore it here.
-%     eegchans = 1:64;
-%     emgchans = 65:66;
-%     [EEGtemp.chanlocs(eegchans).type] = deal('EEG');
-%     [EEGtemp.chanlocs(emgchans).type] = deal('EMG');
-%         
-%     % Select only EEG channels
-%     EEGtemp = pop_select(EEGtemp, 'channel', eegchans);
-%     EEGtemp.chaninfo.removedchans = [];
-%     
-%     % In case you want to add back the reference channel
-%     if strcmp(params.addRefChannel,'yes')
-%         chanlocs = EEGtemp.chanlocs; % Keep the original electrode postions because when you look up for the reference positions all electrode positions are updated.
-%         
-%         aux = pop_chanedit(EEGtemp, 'append',EEGtemp.nbchan, ...
-%             'changefield', {EEGtemp.nbchan+1,'labels',bids.data(iRec).EEGReference},...
-%             'lookup',
-%             'setref',{['1:' num2str(EEGtemp.nbchan)],bids.data(iRec).EEGReference});
-%         
-%     end
-%     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
-%     EEGtemp.data = 'in set file'; % clear data from memory
-%     ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
-% end      
-
-% Make sure that the coordinate system is ok
-% figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo', ALLEEG(1).chaninfo);
+% Check that the electrode position is ok
+figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo',ALLEEG(1).chaninfo);
+hold on,
+figure; topoplot([],ALLEEG(1).chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
 
 CURRENTSTUDY = 1;
 EEG = ALLEEG;
@@ -193,10 +158,6 @@ for iRec=1:size(EEG,2)
     EEG(iRec).event = events;
 end
 EEG = pop_epoch(EEG,{'epoch_start'},[0 params.epoch_length],'epochinfo','yes');
-
-% % Set the coordinate system to RAS so that it can be correctly plotted in fieldtrip
-% EEG = pop_chanedit(EEG, 'nosedir','-Y');
-% figure; topoplot([],EEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo', EEG(1).chaninfo);
 
 % Save study
 EEG = eeg_checkset(EEG);
