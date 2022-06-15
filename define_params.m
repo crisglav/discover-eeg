@@ -60,7 +60,12 @@ params.epoch_overlap = 0.5; % In percentage
 
 %%  FEATURE EXTRACTION PARAMETERS
 % Electrode template (Use a standard one or yours)
-params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
+% This template has MNI coordinates and it is aligned with the standard BEM
+% model. If you have additional non-standard electrodes (e.g. LE and RE)
+% you can define here your electrode template, but make sure that it is
+% properly aligned with the head model.
+% params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
+params.elec_template = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini/sub-CBPpa02/eeg/sub-CBPpa02_electrodes.tsv';
 
 % Frequency resolution
 params.freq_res = 1/params.epoch_length; % In Herz
