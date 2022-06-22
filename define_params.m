@@ -3,11 +3,12 @@
 % Cristina Gil, TUM, 10.06.2022
 function params = define_params()
 %% Data paths (raw and preprocessed data folders in BIDS format)
-params.study = 'FM-mini';
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/FM-mini'; 
+params.study = 'CBP-mini';
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini'; 
 % params.raw_data_path = '/rechenmagd3/CGX_MS/EEG/rawBIDS';
 % params.raw_data_path = 'C:\Users\Mitarbeiter\eeg_datasets\rawBIDS';
-params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives'); % '/rechenmagd3/CGX_MS/EEG/derivatives';
+params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives'); 
+% params.preprocessed_data_path = '/rechenmagd3/CGX_MS/EEG/preprocessed_Pernet2019_Interpolationv4';
 params.task =  []'; % 'restEC'; % [] % if you want all tasks
 
 
@@ -37,7 +38,7 @@ addpath(fullfile('custom_functions'));
 % External functions (mainly from matlab central)
 % addpath(fullfile('external_functions'));
 %% PREPROCESSING PARAMETERS
-params.bidschanloc = 'off'; % Default 'off', only set to on if you have nonstandard EEG channels or you recorded the electrodes positions
+params.bidschanloc = 'on'; % Default 'off', only set to on if you have nonstandard EEG channels or you recorded the electrodes positions
 params.nosedir = '+Y'; % 'RAS' % Needs to be specified in case bidschanloc = 'on'
 % Note: if you want to use the electrode location of the electrodes.tsv
 % file you can change 'bidschanloc to 'on'. Be careful with the orientation
@@ -47,7 +48,8 @@ params.nosedir = '+Y'; % 'RAS' % Needs to be specified in case bidschanloc = 'on
 
 % Add back reference channel
 params.addRefChannel = 'yes';
-params.RefCoord.X = 0.3761; % Coordinates of the reference electrode X, Y, Z in the same coordinate system as electrodes.tsv
+% Coordinates of the reference electrode X, Y, Z in the same coordinate system as electrodes.tsv
+params.RefCoord.X = 0.3761; 
 params.RefCoord.Y = 27.39;
 params.RefCoord.Z = 88.668;
 if strcmp(params.addRefChannel,'no') || strcmp(params.addRefChannel,'off')
@@ -82,8 +84,8 @@ params.epoch_overlap = 0.5; % In percentage
 % model. If you have additional non-standard electrodes (e.g. LE and RE)
 % you can define here your electrode template, but make sure that it is
 % properly aligned with the head model.
-% params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
-params.elec_template = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini/sub-CBPpa02/eeg/sub-CBPpa02_electrodes.tsv';
+params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
+% params.elec_template = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini/sub-CBPpa02/eeg/sub-CBPpa02_electrodes.tsv';
 
 % Frequency resolution
 params.freq_res = 1/params.epoch_length; % In Herz

@@ -1,12 +1,19 @@
 function [bc_plot] = plot_badchannels(params,bidsID)
+x = strsplit(bidsID,'_');
+x = x(1:end-1);
+datapath = fullfile(params.preprocessed_data_path,x{:},'eeg',[bidsID '_eeg.set']);
 
-% load EEG study info
-STUDY = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
-eeg_idx = find(contains({STUDY.datasetinfo.filename}, bidsID));
-EEG = pop_loadset('filepath',STUDY.datasetinfo(eeg_idx).filepath, 'filename',STUDY.datasetinfo(eeg_idx).filename);
+hdr = ft_read_header(datapath);
+etc = hdr.orig.etc;
+nChans = hdr.nChans;
 
-etc = {EEG.etc};
-nChans = length(EEG(1).urchanlocs);
+% % load EEG study info
+% STUDY = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
+% eeg_idx = find(contains({STUDY.datasetinfo.filename}, bidsID));
+% EEG = pop_loadset('filepath',STUDY.datasetinfo(eeg_idx).filepath, 'filename',STUDY.datasetinfo(eeg_idx).filename);
+% 
+% etc = {EEG.etc};
+% nChans = length(EEG(1).urchanlocs);
 nRec = 1;
 
 recmask = cellfun(@(x) isfield(x, 'clean_channel_mask'), etc); % Deal with the case where no bad channels were detected

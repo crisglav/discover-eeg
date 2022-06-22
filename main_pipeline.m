@@ -40,15 +40,6 @@ for iRec=1:length(ALLEEG)
             clabels = {EEGtemp.chanlocs(non_standard_chans).labels};
             c = sprintf('%s ', clabels{:});
             warning(['The position of the channel(s) ' c 'was not found in a standard template and they will be removed. If you want to include them please specify their position in a electrodes.tsv and change define_params accordingly.']);           
-            % Add here electrode positions that are not standard
-%             EEGtemp=pop_chanedit(EEGtemp, ...
-%                 'changefield',{31 ,'X', -65}, 'changefield', {31, 'Y', 50}, 'changefield',{31, 'Z', 60}, ...
-%                 'changefield',{32 ,'X', 65}, 'changefield', {32, 'Y', 50}, 'changefield',{32, 'Z', 60});
-%             discarded = cellfun(@isempty,{EEGtemp.chanlocs.X});
-%             clabels = {EEGtemp.chanlocs(discarded).labels};
-%             c = sprintf('%s ', clabels{:});
-%             warning(['Channels ' c ' will be discarded.']);
-%             eegchans = find(~discarded);
         end
     end
     
@@ -62,9 +53,9 @@ for iRec=1:length(ALLEEG)
 end  
 
 % Check that the electrode position is ok
-figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo',ALLEEG(1).chaninfo);
-hold on,
-figure; topoplot([],ALLEEG(1).chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
+% figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo',ALLEEG(1).chaninfo);
+% hold on,
+% figure; topoplot([],ALLEEG(1).chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
 
 CURRENTSTUDY = 1;
 EEG = ALLEEG;
@@ -110,15 +101,16 @@ plot_ICs(params,EEG);
 
 % 4. INTERPOLATE MISSING CHANNELS
 for iRec=1:size(EEG,2)
-    if ~isempty(EEG(iRec).chaninfo.removedchans)
-        l = cellfun(@(x) strcmp(x,'average'), {EEG(iRec).chaninfo.removedchans.ref});  % Deal with a small bug that duplicates bad channels after rereferencing in removedchans
-        EEG(iRec).chaninfo.removedchans = EEG(iRec).chaninfo.removedchans(~l);
-        EEGtemp = eeg_checkset(EEG(iRec),'loaddata'); % Retrieve data
-        EEGtemp = pop_interp(EEGtemp, EEGtemp.chaninfo.removedchans, 'spherical');
-        EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
-        EEGtemp.data = 'in set file'; % clear data from memory
-        EEG = eeg_store(EEG, EEGtemp, iRec);
+    EEGtemp = eeg_checkset(EEG(iRec),'loaddata'); % Retrieve data
+    urchanlocs = EEGtemp.urchanlocs;
+    [~, iref] = setdiff({EEGtemp.chanlocs.labels},{EEGtemp.urchanlocs.labels});
+    if ~isempty(iref)
+        urchanlocs(end+1) = EEGtemp.chanlocs(iref);
     end
+    EEGtemp = pop_interp(EEGtemp, urchanlocs, 'spherical');
+    EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
+    EEGtemp.data = 'in set file'; % clear data from memory
+    EEG = eeg_store(EEG, EEGtemp, iRec);
 end
 
 % 5. REMOVE BAD TIME SEGMENTS
@@ -171,8 +163,8 @@ clear EEG ALLEEG;
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-params = define_params();
-[STUDY, EEG] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
+% params = define_params();
+% [STUDY, EEG] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
 %%
 for iRec=1:length(STUDY.datasetinfo)
     
@@ -182,11 +174,11 @@ for iRec=1:length(STUDY.datasetinfo)
     filepath = STUDY.datasetinfo(iRec).filepath;
 
     % 1. POWER (ELECTRODE SPACE)
-%     if ~exist(fullfile(params.power_folder,[bidsID '_power.mat']),'file')
+    if ~exist(fullfile(params.power_folder,[bidsID '_power.mat']),'file')
         power = compute_power(params,bidsID);
         power.bidsID = bidsID;
         save(fullfile(filepath,[bidsID '_power.mat']),'power')
-%     end
+    end
     % Plotting
     [power_fig, topoplot_fig] = plot_power(params,bidsID);
     saveas(power_fig,fullfile(params.figures_folder,[bidsID '_power.svg']));
@@ -247,5 +239,7 @@ for iRec=1:length(STUDY.datasetinfo)
     close(aec_fig);
 
 end
+recording_report(params,bidsID)
+
 end
 
