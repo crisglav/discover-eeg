@@ -110,6 +110,7 @@ params.atlaspath = fullfile('parcellations','Schaefer2018_400Parcels_7Networks_o
 params.mripath = fullfile(params.fieldtrip_path,'template','anatomy','single_subj_T1.nii');
 
 % Graph measures
+params.graphMeas = {'gcc','transitivity','cpl','geff','s'}; % Global graph measures
 params.connMatrix_threshold = 0.2;
 
 %% Generated folders (don't need to change anything here)

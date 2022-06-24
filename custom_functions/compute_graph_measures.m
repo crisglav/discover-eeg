@@ -5,7 +5,7 @@ catch
     error(['Connectivity matrix '  bidsID '_' connMeasure '_' freqBand ' could not be loaded']);
 end
 
-% Rearrange values of the connectivity matrix to match the atlas
+% Rearrange values of the connectivity matrix to match the atlas - JUST FOR VISUALIZATION
 % Load atlas
 atlas400 = readtable(params.atlaspath);
 % Points by network
@@ -14,10 +14,11 @@ pos = cell(1,length(networks));
 axisticks = ones(1,length(networks)+1);
 axistickslabelpos = ones(1,length(networks));
 for i=1:length(networks)
-    pos{i}  = find(cellfun(@(x) contains(x,['_' networks{i} '_']), atlas400.ROIName));
+    pos{i}  = find(cellfun(@(x) contains(x,['_' networks{i} '_']), atlas400.ROIName)); % all sources belonging to network{i}
     axisticks(i+1) = length(pos{i})+axisticks(i);
-    axistickslabelpos(i) = axisticks(i)+(axisticks(i+1)-axisticks(i))/2;
+    axistickslabelpos(i) = axisticks(i)+(axisticks(i+1)-axisticks(i))/2; % set the network label in the middle
 end
+axisticks = axisticks(2:end);
 newpos = vertcat(pos{:});
 % Reshape connectivity matrices to match the atlas networks
 c = connMatrix(newpos,newpos);
@@ -37,7 +38,7 @@ degree = degrees_und(adjacency_matrix);
 
 % Weighted degree - Number of connexions of each node wighted by the
 % connexion value
-wdegree = sum(adjacency_matrix.*connMatrix);
+% wdegree = nansum(adjacency_matrix.*connMatrix);
 
 % Clustering coefficient - The percentage of existing triangles surrounding
 % one node out of all possible triangles
@@ -65,78 +66,81 @@ smallworldness = (gcc/gcc_rand) / (cpl/cpl_rand);
 
 graph_measures.threshold = threshold;
 graph_measures.degree = degree;
-graph_measures.clustering_coef = clustering_coef';
-graph_measures.global_clustering_coef = gcc;
+graph_measures.cc = clustering_coef';
+graph_measures.gcc = gcc;
 graph_measures.transitivity = transitivity;
 graph_measures.cpl = cpl;
 graph_measures.geff = geff;
 graph_measures.smallworldness = smallworldness;
-clear smallworldness;
-%% Graph analysis with BRAPH
-% g = GraphWU(connMatrix);
-g = GraphBU(connMatrix,'threshold',threshold);
-braph.degree = g.degree();
-% ---- Global measures of segregation -----
-[braph.globalcc, braph.localcc] = g.cluster();
-braph.transitivity = g.transitivity();
-% ---- Global measures of integration -----
-pth = g.pl();
-braph.cpl = g.measure(g.CPL_WSG);
-% ----- Small-worldness -----
-braph.smallworldness = smallworldness(g,1);
+save(fullfile(params.graph_folder,[bidsID '_graph_' connMeasure '_' freqBand '.mat']),'graph_measures')
+
+% %% Graph analysis with BRAPH
+% % g = GraphWU(connMatrix);
+% g = GraphBU(connMatrix,'threshold',threshold);
+% braph.degree = g.degree();
+% % ---- Global measures of segregation -----
+% [braph.globalcc, braph.localcc] = g.cluster();
+% braph.transitivity = g.transitivity();
+% % ---- Global measures of integration -----
+% pth = g.pl();
+% braph.cpl = g.measure(g.CPL_WSG);
+% % ----- Small-worldness -----
+% braph.smallworldness = smallworldness(g,1); % Takes a while
+
 
 %% Plotting
 % Thresholded connectivity matrix reorderd by networks
 f1 = figure();
-imagesc(c.*adjacency_matrix)
+imagesc(c.*adjacency_matrix);
+% imagesc(c,'AlphaData',adjacency_matrix+(~adjacency_matrix)*0.5);
 ax = f1.CurrentAxes;
 set(ax,'XTick',axistickslabelpos,'XtickLabel',networks,'XtickLabelRotation',45,'YTick',axistickslabelpos,'YtickLabel',networks,'TickLength',[0 0],'TickDir','out','box','off')
+colorbar(ax);
 grid on
 grid minor
-set(ax,'GridColor','w','GridAlpha',1,'Layer','top','MinorGridColor','w','MinorGridLineStyle','-','MinorGridAlpha',0.4);
+set(ax,'GridColor','w','GridAlpha',1,'LineWidth',1,'Layer','top','MinorGridColor','w','MinorGridLineStyle','-','MinorGridAlpha',0.2);
 ax2 = copyobj(ax,ax.Parent);
-set(ax2,'Ytick',axisticks','Xtick',axisticks,'yticklabel',[],'xticklabel',[]);
+set(ax2,'Ytick',axisticks','Xtick',axisticks,'yticklabel',[],'xticklabel',[],'Position',ax.Position);
 ax2.XAxis.MinorTickValues = axistickslabelpos; % Subgrid separes left and right hemisferes
 ax2.YAxis.MinorTickValues = axistickslabelpos;
-colorbar;
-title(freqNames(iFreq));
+% title(freqNames(iFreq));
     
     
 figure()
 scatter(1:400, graph_measures.degree,15,'filled');
-for i=2:length(axisticks)
+for i=1:length(axisticks)
     hold on
-    xline(axisticks(i),'k','LineWidth',1.5)
+    xline(axisticks(i),'k','LineWidth',1)
 end
 ax = gca;
-set(ax,'XTick',axistickslabelpos,'XtickLabel',networks,'TickLength',[0 0],'TickDir','out','box','off')
+set(ax,'XTick',axistickslabelpos,'XtickLabel',networks,'XtickLabelRotation',45,'TickLength',[0 0],'TickDir','out','box','off')
 ylabel ('Number of connected nodes');
 title('Degree');
 
-figure()
-scatter(1:400,wdegree,15,'filled')
-for i=2:length(axisticks)
-    hold on
-    xline(axisticks(i),'k','LineWidth',1.5)
-end
-ax = gca;
-set(ax,'XTick',axistickslabelpos,'XtickLabel',networks,'TickLength',[0 0],'TickDir','out','box','off')
-ylabel ('Number of connected nodes weighted by its connectivity');
-title('Weighted degree')
+% figure()
+% scatter(1:400,wdegree,15,'filled')
+% for i=1:length(axisticks)
+%     hold on
+%     xline(axisticks(i),'k','LineWidth',1)
+% end
+% ax = gca;
+% set(ax,'XTick',axistickslabelpos,'XtickLabel',networks,'XtickLabelRotation',45,'TickLength',[0 0],'TickDir','out','box','off')
+% ylabel ('Number of connected nodes weighted by its connectivity');
+% title('Weighted degree')
 
-figure()
+f = figure();
 scatter(1:400, graph_measures.clustering_coef,15,'filled');
-for i=2:length(axisticks)
+for i=1:length(axisticks)
     hold on
-    xline(axisticks(i),'k','LineWidth',1.5)
+    xline(axisticks(i),'k','LineWidth',1)
 end
-ax = gca;
-set(ax,'XTick',axistickslabelpos,'XtickLabel',networks,'TickLength',[0 0],'TickDir','out','box','off')
-ylabel ('Fraction of nodes neighbours that are also neighbours of each other');
+ax = f.CurrentAxes;
+set(ax,'XTick',axistickslabelpos,'XtickLabel',networks,'XtickLabelRotation',45,'TickLength',[0 0],'TickDir','out','box','off')
+ylabel ('Local clusterin coefficient'); % Fraction of nodes neighbours that are also neighbours of each other
 title('Clustering coefficient');
-
-% adjacency_matrix2 = abs(avgConnMatrix) >= threshold;
-% g = graph(adjacency_matrix2,atlas400.ROIName);
-% plot(g);
+% p = ax.InnerPosition;
+% pos = [p(1)+p(1)*0.1,p(2), p(3)*0.5, p(4)*0.2];
+% str = {'Global measures of segregation',sprintf('Global cc = %.2f', gcc),sprintf('Transitivity = %.2f', transitivity)};
+% annotation('textbox',pos,'String',str,'BackgroundColor','w','FitBoxToText','on','verticalalignment','bottom');
 
 end

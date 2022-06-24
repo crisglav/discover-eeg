@@ -229,6 +229,8 @@ for iRec=1:length(STUDY.datasetinfo)
     close(dwpli_fig);
     close(aec_fig);
 
+    dwpli_graph = plot_graph_measures(params,bidsID,'dwpli');
+
 end
 % Generate individual recording reports with figures
 recording_report(params,bidsID)
