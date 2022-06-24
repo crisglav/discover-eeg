@@ -107,6 +107,7 @@ params.tapsmofrq = 1;
 params.volpath = fullfile(params.fieldtrip_path,'template','headmodel','standard_bem.mat');
 % Atlas positions
 params.atlaspath = fullfile('parcellations','Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
+params.mripath = fullfile(params.fieldtrip_path,'template','anatomy','single_subj_T1.nii');
 
 % Graph measures
 params.connMatrix_threshold = 0.2;
@@ -128,11 +129,11 @@ if ~exist(params.figures_folder,'dir')
     mkdir(params.figures_folder);
 end
 
-% Folder that will contain peak frequency files
-params.pf_folder = fullfile(params.preprocessed_data_path,'EEG_features','peak_frequency');
-if ~exist(params.pf_folder,'dir')
-    mkdir(params.pf_folder);
-end
+% % Folder that will contain peak frequency files
+% params.pf_folder = fullfile(params.preprocessed_data_path,'EEG_features','peak_frequency');
+% if ~exist(params.pf_folder,'dir')
+%     mkdir(params.pf_folder);
+% end
 % Folder that will contain power files
 params.power_folder = fullfile(params.preprocessed_data_path,'EEG_features','power');
 if ~exist(params.power_folder,'dir')

@@ -166,45 +166,36 @@ clear EEG ALLEEG;
 % params = define_params();
 % [STUDY, EEG] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
 %%
+% Visualization of corregistration of electroes and sources for one exemplary dataset (check that
+% electrodes are aligned with the head model)
+plot_electrodesandsources(params,'sub-CBPpa02_task-closed')
+
+% Visualization of atlas regions by network
+plot_atlasregions(params);
+
+
 for iRec=1:length(STUDY.datasetinfo)
     
     % BIDS ID
     x = strsplit(STUDY.datasetinfo(iRec).filename,'_eeg.set');
     bidsID = x{1,1};
-    filepath = STUDY.datasetinfo(iRec).filepath;
 
     % 1. POWER (ELECTRODE SPACE)
     if ~exist(fullfile(params.power_folder,[bidsID '_power.mat']),'file')
-        power = compute_power(params,bidsID);
-        power.bidsID = bidsID;
-        save(fullfile(filepath,[bidsID '_power.mat']),'power')
+        compute_power(params,bidsID);
     end
-    % Plotting
-    [power_fig, topoplot_fig] = plot_power(params,bidsID);
-    saveas(power_fig,fullfile(params.figures_folder,[bidsID '_power.svg']));
-    saveas(topoplot_fig,fullfile(params.figures_folder,[bidsID '_power_topoplots.svg']));
-    close(power_fig);
-    close(topoplot_fig);
     
     % 2. PEAK FREQUENCY (ELECTRODE SPACE)
-    if ~exist(fullfile(params.pf_folder,[bidsID '_peakfrequency.mat']),'file')
-        pf = compute_peak_frequency(params,bidsID);
-        pf.bidsID = bidsID;
-        save(fullfile(filepath,[bidsID '_peakfrequency.mat']),'pf')
-    end
-    % Plotting
-    pf_fig = plot_peakfrequency(params,bidsID);
-    saveas(pf_fig,fullfile(params.figures_folder,[bidsID '_PeakFrequency.svg']));
-    close(pf_fig)    
+    if ~exist(fullfile(params.power_folder,[bidsID '_peakfrequency.mat']),'file')
+        compute_peakfrequency(params,bidsID);
+    end    
     
     % Loop over frequency bands
     for iFreq = fields(params.freq_band)'
         
         % 3. SOURCE RECONSTRUCTION (power at source space)
         if ~exist(fullfile(params.source_folder,[bidsID '_source_' iFreq{:} '.mat']),'file')
-            source = compute_spatial_filter(params,bidsID,iFreq{:});
-            source.bidsID = [bidsID '_' iFreq{:}];
-            save(fullfile(params.source_folder,[bidsID '_source_' iFreq{:} '.mat']),'source')
+            compute_spatial_filter(params,bidsID,iFreq{:});
         end
         
         % 4.A FUNCTIONAL CONNECTIVITY - dwPLI
@@ -239,7 +230,10 @@ for iRec=1:length(STUDY.datasetinfo)
     close(aec_fig);
 
 end
+% Generate individual recording reports with figures
 recording_report(params,bidsID)
 
 end
+
+
 

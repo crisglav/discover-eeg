@@ -1,4 +1,4 @@
-function source = compute_spatial_filter(params,bidsID,freqBand)
+function compute_spatial_filter(params,bidsID,freqBand)
 % Load EEG data
 data = load_preprocessed_data(params,bidsID);
 
@@ -18,7 +18,7 @@ atlas400 = readtable(params.atlaspath);
 cfg = [];
 cfg.method = 'basedonpos';
 cfg.sourcemodel.pos = cat(1,[atlas400.R, atlas400.A, atlas400.S],outside_pos);
-cfg.sourcemodel.inside = [ones(400,1); zeros(sum(~sourcemodel_grid.inside),1)];
+cfg.sourcemodel.inside = [ones(size(atlas400,1),1); zeros(sum(~sourcemodel_grid.inside),1)];
 cfg.unit = 'mm';
 cfg.headmodel = params.volpath;
 sourcemodel_atlas = ft_prepare_sourcemodel(cfg);
@@ -65,10 +65,11 @@ cfg.lcmv.weightnorm = 'arraygain';
 cfg.sourcemodel = lf;
 source = ft_sourceanalysis(cfg, tlock);
 
-% %% Plot power
-% 
+save(fullfile(params.source_folder,[bidsID '_source_' freqBand '.mat']),'source')
+
+% %% Plot source power
 % cfg = [];
-% % cfg.downsample = 2;
+% cfg.downsample = 2;
 % cfg.parameter = 'pow';
 % mri = ft_read_mri(params.mripath); % MRI template (for visualiztion)
 % sourceInterp = ft_sourceinterpolate(cfg,source,mri);

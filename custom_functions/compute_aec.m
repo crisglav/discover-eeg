@@ -17,13 +17,14 @@ cfg  = [];
 cfg.pos = source.pos(source.inside,:);
 virtChan_data = ft_virtualchannel(cfg,data,source);
 
-% Stefan's code
-% Computes AEC on every trial, then average across trials
+% Compute AEC on every trial, then average across trials
 tic
 connMatrix = aecConnectivity_brainstorm(virtChan_data);
 connMatrix = mean(connMatrix,3);
 t = toc;
 disp([bidsID '_', freqBand, ' computation took ', num2str(t/60), ' minutes'])
+
+save(fullfile(params.connectivity_folder,[bidsID '_aec_' freqBand '.mat']),'connMatrix')
 
 % load(fullfile(params.connectivity_folder,[bidsID '_aec_' freqBand]));
 % connMatrix = mean(aec,3);

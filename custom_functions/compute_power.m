@@ -1,4 +1,4 @@
-function power = compute_power(params,bidsID)
+function compute_power(params,bidsID)
 % Load EEG data
 data = load_preprocessed_data(params,bidsID);
 
@@ -11,4 +11,10 @@ cfg.tapsmofrq = params.tapsmofrq;
 cfg.output = 'pow';
 cfg.keeptrials ='no';
 power = ft_freqanalysis(cfg, data);
+
+save(fullfile(params.power_folder,[bidsID '_power.mat']),'power')
+% Plotting
+[power_fig, topoplot_fig] = plot_power(params,bidsID);
+saveas(power_fig,fullfile(params.power_folder,[bidsID '_power.svg']));
+saveas(topoplot_fig,fullfile(params.power_folder,[bidsID '_power_topoplots.svg']));
 end

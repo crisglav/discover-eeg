@@ -10,8 +10,9 @@ function data = load_preprocessed_data(params,bidsID)
     cfg.dataset = datapath;
     data = ft_preprocessing(cfg);
     
-    % Using electrode positions from EEGLab
+    % Using electrode positions from electrodes.tsv
     if strcmp(params.bidschanloc,'on')
+          % Coordinates taken from the .set file -> not aligned with mni template 
 %         % Coordinate system of eelgab has to be defined manually
 %         data.elec.coordsys = 'ctf';
 %         data.elec = ft_convert_units(data.elec, 'mm');
@@ -32,52 +33,84 @@ function data = load_preprocessed_data(params,bidsID)
 %         ft_plot_sens(data.elec,'style','r','label','label','elec','true','elecshape','disc','elecsize',5,'facecolor','r');
 %         view(90,0);
         
-        elecpath = fullfile(params.raw_data_path,x{:},'eeg',[x{:} '_electrodes.tsv']);
-        elec_tsv = ft_read_sens(elecpath);
-        channels = ismember(elec_tsv.label,data.label);
-               
+        elec = ft_read_sens(fullfile(params.raw_data_path,x{:},'eeg',[x{:} '_electrodes.tsv']));
+        channels = ismember(elec.label,data.label);
+        
+        % Check whether there are channels not present in the tsv file
+        c = setdiff(data.label,elec.label);
+        if ~isempty(c)
+            c = sprintf('%s ', c{:});
+            warning(['The position of the channel(s) ' c ' was not found in ' x{:} '_electrodes.tsv']);
+        end
+        
+        c = setdiff(elec.label,data.label);
+        if ~isempty(c)
+            c = sprintf('%s ', c{:});
+            warning(['Channels(s) ' c ' are not present in the data and will be discarded']);
+        end
+        
+        elec.chanpos = elec.chanpos(channels,:);
+        elec.chantype = elec.chantype(channels,:);
+        elec.chanunit = elec.chanunit(channels,:);
+        elec.elecpos = elec.elecpos(channels,:);
+        elec.label = elec.label(channels,:);
+        elec.type = 'custom';
+        elec.unit = elec.unit;
+        
     else    
         % Take the coordinates from the mni template
         elec_template = ft_read_sens('standard_1005.elc');
         channels = ismember(elec_template.label,data.label);   
-        elec.chanpos = elec_template.chanpos(channels,:);
-        elec.chantype = elec_template.chantype(channels,:);
-        elec.chanunit = elec_template.chanunit(channels,:);
-        elec.elecpos = elec_template.elecpos(channels,:);
-        elec.label = elec_template.label(channels,:);
+        
+        chanpos = elec_template.chanpos(channels,:);
+        chantype = elec_template.chantype(channels,:);
+        chanunit = elec_template.chanunit(channels,:);
+        elecpos = elec_template.elecpos(channels,:);
+        label = elec_template.label(channels,:);
+        
+        % Check whether there are non-standard channels
+        c = setdiff(data.label,elec_template.label);
+        if ~isempty(c)
+            c = sprintf('%s ', c{:});
+            warning(['The position of the channel(s) ' c 'was not found in a standard template and they will be removed.']);
+        end                
+        % Remove non-standard channels
+        ic = ismember(data.label,elec_template.label);       
+        if ~all(ic)
+            cfg = [];
+            cfg.channel = data.elec.label(ic);
+            data = ft_selectdata(cfg,data);
+        end
         
         % Arrange the electrodes as in the original data
-        c = setdiff(data.label,elec_template.label);
-        ic = ismember(data.label,elec_template.label);
-        c = sprintf('%s ', c{:});
-        warning(['The position of the channel(s) ' c 'was not found in a standard template and they will be removed. If you want to include them please specify their position in a electrodes.tsv and change define_params accordingly.']);           
+        [~,ix] = sort(data.label);
+        [~,jx] = sort(ix);        
+        [~,kx] = sort(label);
         
-        cfg = [];
-        cfg.channel = data.elec.label(ic);
-        data = ft_selectdata(cfg,data);
-        % TO DO:
-        [a,i] = sort(data.label);
-        elec.label(i);
+        elec.chanpos = chanpos(kx(jx),:);
+        elec.chantype = chantype(kx(jx),:);
+        elec.chanunit = chanunit(kx(jx),:);
+        elec.elecpos = elecpos(kx(jx),:);
+        elec.label = label(kx(jx),:);
+        elec.type = 'custom';
+        elec.unit = elec_template.unit;
         
-    
     end
-    elec.chanpos = elec_template.chanpos(channels,:);
-    elec.chantype = elec_template.chantype(channels,:);
-    elec.chanunit = elec_template.chanunit(channels,:);
-    elec.elecpos = elec_template.elecpos(channels,:);
-    elec.label = elec_template.label(channels,:);
-    elec.type = 'custom';
-    elec.unit = elec_template.unit;
+
+%     % Overlay electrode positions
+%     load(params.volpath,'vol');
+%     figure;
+%     ft_plot_headmodel(vol,'facealpha',0.1,'facecolor',[0.1 0.1 0.1],'edgecolor',[1 1 1],'edgealpha',0.5);
+%     hold on;
+%     ft_plot_sens(elec,'label','number','elec','true','elecshape','disc','elecsize',5,'facecolor','r');
+%     view(90,0);
     
-    % Overlay electrode positions
-    load(params.volpath,'vol');
-    figure;
-    ft_plot_headmodel(vol,'facealpha',0.1,'facecolor',[0.1 0.1 0.1],'edgecolor',[1 1 1],'edgealpha',0.5);
-    hold on;
-    ft_plot_sens(elec_tsv,'label','number','elec','true','elecshape','disc','elecsize',5,'facecolor','r');
-    view(90,0);
     
-    data.elec = elec;
+    if isequal(data.label,elec.label)
+        data.elec = elec;
+    else
+        warning('data.label is not equal to elec.label')
+    end
     
 %     % Patch to select only EEG electrodes (in case you have specified in
 %     % the electrodes.tsv type 'EEG' in electrodes that were not EEG)

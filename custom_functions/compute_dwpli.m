@@ -1,4 +1,4 @@
-function avgConnMatrix = compute_dwpli(params,bidsID,freqBand)
+function connMatrix = compute_dwpli(params,bidsID,freqBand)
 % Load EEG data
 data = load_preprocessed_data(params,bidsID);
 
@@ -45,11 +45,11 @@ for idx=1:length(fois)
 end
 t = toc;
 
-avgConnMatrix = mean(abs(connMatrix), 3);
-[nRows, nCols] = size(avgConnMatrix);
-avgConnMatrix(1:nRows+1:nRows*nCols) = nan;
+connMatrix = mean(abs(connMatrix), 3);
+[nRows, nCols] = size(connMatrix);
+connMatrix(1:nRows+1:nRows*nCols) = nan;
 disp([bidsID '_', freqBand, ' computation took ', num2str(t/60), ' minutes'])
 clear connMatrix;
 
-
+save(fullfile(params.connectivity_folder,[bidsID '_dwpli_' freqBand '.mat']),'connMatrix')
 end
