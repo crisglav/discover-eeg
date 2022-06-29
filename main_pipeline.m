@@ -168,10 +168,10 @@ clear EEG ALLEEG;
 %%
 % Visualization of corregistration of electroes and sources for one exemplary dataset (check that
 % electrodes are aligned with the head model)
-plot_electrodesandsources(params,'sub-CBPpa02_task-closed')
-
-% Visualization of atlas regions by network
-plot_atlasregions(params);
+% plot_electrodesandsources(params,'sub-01_task-closed')
+% 
+% % Visualization of atlas regions by network
+% plot_atlasregions(params);
 
 
 for iRec=1:length(STUDY.datasetinfo)
@@ -200,40 +200,49 @@ for iRec=1:length(STUDY.datasetinfo)
         
         % 4.A FUNCTIONAL CONNECTIVITY - dwPLI
         if ~exist(fullfile(params.connectivity_folder,[bidsID '_dwpli_' iFreq{:} '.mat']),'file')
-            connMatrix = compute_dwpli(params,bidsID,iFreq{:});
-            save(fullfile(params.connectivity_folder,[bidsID '_dwpli_' iFreq{:} '.mat']),'connMatrix')
+            compute_dwpli(params,bidsID,iFreq{:});
+%             save(fullfile(params.connectivity_folder,[bidsID '_dwpli_' iFreq{:} '.mat']),'connMatrix')
         end
         
         % 4.B FUNCTIONAL CONNECTIVITY - AEC
         if ~exist(fullfile(params.connectivity_folder,[bidsID '_aec_' iFreq{:} '.mat']),'file')
-            connMatrix = compute_aec(params,bidsID,iFreq{:});
-            save(fullfile(params.connectivity_folder,[bidsID '_aec_' iFreq{:} '.mat']),'connMatrix')
+            compute_aec(params,bidsID,iFreq{:});
+%             save(fullfile(params.connectivity_folder,[bidsID '_aec_' iFreq{:} '.mat']),'connMatrix')
         end
         
         % 5. NETWORK CHARACTERIZATION (GRAPH MEASURES)
         if ~exist(fullfile(params.graph_folder,[bidsID '_graph_dwpli_' iFreq{:} '.mat']),'file')
-            graph_dwpli = compute_graph_measures(params,bidsID,iFreq{:},'dwpli');
-            save(fullfile(params.graph_folder,[bidsID '_graph_dwpli_' iFreq{:} '.mat']),'graph_dwpli')
+            compute_graph_measures(params,bidsID,iFreq{:},'dwpli');
+%             save(fullfile(params.graph_folder,[bidsID '_graph_dwpli_' iFreq{:} '.mat']),'graph_dwpli')
         end        
         if ~exist(fullfile(params.graph_folder,[bidsID '_graph_aec_' iFreq{:} '.mat']),'file')
-            graph_aec = compute_graph_measures(params,bidsID,iFreq{:},'aec');
-            save(fullfile(params.graph_folder,[bidsID '_graph_aec_' iFreq{:} '.mat']),'graph_aec')
+            compute_graph_measures(params,bidsID,iFreq{:},'aec');
+%             save(fullfile(params.graph_folder,[bidsID '_graph_aec_' iFreq{:} '.mat']),'graph_aec')
         end
         
     end
-    % Plot connectivity matrices in all frequency bands and save it in figures folder
+    
+    % Plot connectivity matrices in all frequency bands and save then in connectivity folder
     dwpli_fig = plot_connectivity(params,bidsID,'dwpli');
-    aec_fig = plot_connectivity(params,bidsID,'aec');
-    saveas(dwpli_fig,fullfile(params.figures_folder,[bidsID '_dwpli.svg']));
-    saveas(aec_fig,fullfile(params.figures_folder,[bidsID '_aec.svg']));
+    saveas(dwpli_fig,fullfile(params.connectivity_folder,[bidsID '_dwpli.svg']));
     close(dwpli_fig);
+
+    aec_fig = plot_connectivity(params,bidsID,'aec');
+    saveas(aec_fig,fullfile(params.figures_folder,[bidsID '_aec.svg']));
     close(aec_fig);
-
-    dwpli_graph = plot_graph_measures(params,bidsID,'dwpli');
-
+    
+    % Plot graph measures for each connectivity measure
+    dwpli_graph_fig = plot_graph_measures(params,bidsID,'dwpli');
+    saveas(dwpli_graph_fig,fullfile(params.graph_folder,[bidsID '_graph_dwpli.svg']));
+    close(dwpli_graph_fig);
+    
+    aec_graph_fig = plot_graph_measures(params,bidsID,'aec');
+    saveas(aec_graph_fig,fullfile(params.graph_folder,[bidsID '_graph_aec.svg']));
+    close(aec_graph_fig);
+    
 end
-% Generate individual recording reports with figures
-recording_report(params,bidsID)
+% % Generate individual recording reports with figures
+% recording_report(params,bidsID)
 
 end
 

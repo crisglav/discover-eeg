@@ -1,4 +1,4 @@
-function connMatrix = compute_dwpli_felix(params,bidsID,freqBand)
+function compute_dwpli_felix(params,bidsID,freqBand)
 % Instead of computing one connectivity matrix per frequency bin, obtain
 % the fourier time series with multitapering with a high frequency
 % resolution and obtain the connectivity matrix at that freq.
@@ -26,7 +26,7 @@ clear virtChan_timeSeries sourceData filter_array;
 % prealocate connectivity matrix
 connMatrix = zeros(nVoxel, nVoxel);
 
-% Frequency that is in the middel of the frequency band of interest
+% Frequency that is in the middle of the frequency band of interest
 halfrange = (params.freq_band.(freqBand)(2)-params.freq_band.(freqBand)(1))/2;
 midfreq = params.freq_band.(freqBand)(1) + halfrange;
 
@@ -53,5 +53,6 @@ b = toc;
 [nRows, nCols] = size(connMatrix);
 connMatrix(1:nRows+1:nRows*nCols) = nan;
 disp([bidsID '_', freqBand, ' computation took ', num2str(b/60), ' minutes'])
+save(fullfile(params.connectivity_folder,[bidsID '_dwpliFelix_' freqBand '.mat']),'connMatrix')
 
 end

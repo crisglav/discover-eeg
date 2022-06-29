@@ -3,8 +3,8 @@
 % Cristina Gil, TUM, 10.06.2022
 function params = define_params()
 %% Data paths (raw and preprocessed data folders in BIDS format)
-params.study = 'CBP-mini';
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini'; 
+params.study = 'CGX_MS';
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/rawBIDS'; 
 % params.raw_data_path = '/rechenmagd3/CGX_MS/EEG/rawBIDS';
 % params.raw_data_path = 'C:\Users\Mitarbeiter\eeg_datasets\rawBIDS';
 params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives'); 
@@ -37,8 +37,9 @@ addpath(params.braph);
 addpath(fullfile('custom_functions'));
 % External functions (mainly from matlab central)
 % addpath(fullfile('external_functions'));
+addpath(fullfile('external_functions','spider_plot-master'));
 %% PREPROCESSING PARAMETERS
-params.bidschanloc = 'on'; % Default 'off', only set to on if you have nonstandard EEG channels or you recorded the electrodes positions
+params.bidschanloc = 'off'; % Default 'off', only set to on if you have nonstandard EEG channels or you recorded the electrodes positions
 params.nosedir = '+Y'; % 'RAS' % Needs to be specified in case bidschanloc = 'on'
 % Note: if you want to use the electrode location of the electrodes.tsv
 % file you can change 'bidschanloc to 'on'. Be careful with the orientation
@@ -47,7 +48,7 @@ params.nosedir = '+Y'; % 'RAS' % Needs to be specified in case bidschanloc = 'on
 % Note2: bidschanloc 'on' does not work if one specific task is selected. 
 
 % Add back reference channel
-params.addRefChannel = 'yes';
+params.addRefChannel = 'no';
 % Coordinates of the reference electrode X, Y, Z in the same coordinate system as electrodes.tsv
 params.RefCoord.X = 0.3761; 
 params.RefCoord.Y = 27.39;
@@ -110,7 +111,7 @@ params.atlaspath = fullfile('parcellations','Schaefer2018_400Parcels_7Networks_o
 params.mripath = fullfile(params.fieldtrip_path,'template','anatomy','single_subj_T1.nii');
 
 % Graph measures
-params.graphMeas = {'gcc','transitivity','cpl','geff','s'}; % Global graph measures
+params.graphMeas = {'gcc','transitivity','cpl','geff','smallworldness'}; % Global graph measures
 params.connMatrix_threshold = 0.2;
 
 %% Generated folders (don't need to change anything here)

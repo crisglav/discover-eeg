@@ -1,4 +1,4 @@
-function connMatrix = compute_aec(params,bidsID,freqBand)
+function compute_aec(params,bidsID,freqBand)
 % Load EEG data
 data = load_preprocessed_data(params,bidsID);
 
