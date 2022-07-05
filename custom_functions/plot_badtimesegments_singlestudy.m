@@ -1,4 +1,17 @@
 function [bs_plot, bs_secs, bs_pc] = plot_badtimesegments_singlestudy(params,bidsID)
+x = strsplit(bidsID,'_');
+x = x(1:end-1);
+datapath = fullfile(params.preprocessed_data_path,x{:},'eeg',[bidsID '_eeg.set']);
+
+hdr = ft_read_header(datapath);
+etc = hdr.orig.etc;
+events = hdr.orig.event;
+
+if (isfield(etc,'clean_sample_mask'))
+    lengths = length(etc.clean_sample_mask);
+else
+    lengths = zeros(nChans,1);
+end
 
 % load EEG study info
 STUDY = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);

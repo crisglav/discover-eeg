@@ -3,27 +3,15 @@ function compute_spatial_filter(params,bidsID,freqBand)
 data = load_preprocessed_data(params,bidsID);
 
 %% Source model 
-% Create a grid just for visualization (extract the positions outside the brain)
-cfg = [];
-cfg.method = 'basedonresolution';
-cfg.resolution = 10;
-cfg.unit = 'mm';
-cfg.headmodel = params.volpath;
-sourcemodel_grid = ft_prepare_sourcemodel(cfg);
-sourcemodel_grid.coordsys = 'mni';
-outside_pos = sourcemodel_grid.pos(~sourcemodel_grid.inside,:);
-
 % Source model: centroid positons from Schaefer atlas
 atlas400 = readtable(params.atlaspath);
 cfg = [];
 cfg.method = 'basedonpos';
-cfg.sourcemodel.pos = cat(1,[atlas400.R, atlas400.A, atlas400.S],outside_pos);
-cfg.sourcemodel.inside = [ones(size(atlas400,1),1); zeros(sum(~sourcemodel_grid.inside),1)];
+cfg.sourcemodel.pos = [atlas400.R, atlas400.A, atlas400.S];
 cfg.unit = 'mm';
 cfg.headmodel = params.volpath;
 sourcemodel_atlas = ft_prepare_sourcemodel(cfg);
 sourcemodel_atlas.coordsys = 'mni';
-% params.sourcemodel = sourcemodel_atlas;
 
 %% Bandpass the data in the relevant frequency band
 cfg = [];
@@ -67,19 +55,17 @@ source = ft_sourceanalysis(cfg, tlock);
 
 save(fullfile(params.source_folder,[bidsID '_source_' freqBand '.mat']),'source')
 
-% %% Plot source power
-% cfg = [];
-% cfg.downsample = 2;
-% cfg.parameter = 'pow';
-% mri = ft_read_mri(params.mripath); % MRI template (for visualiztion)
-% sourceInterp = ft_sourceinterpolate(cfg,source,mri);
-% cfg = [];
-% cfg.funparameter = 'pow';
-% cfg.method = 'slice';
-% ft_sourceplot(cfg,sourceInterp,mri);
+% Plot source power
+% surf = ft_read_headshape('surface_white_both.mat');
+% tmpcfg = [];
+% tmpcfg.method = 'nearest';
+% tmpcfg.parameter = 'pow';
+% sourceInterp = ft_sourceinterpolate(tmpcfg, source, surf);
+% 
 % cfg = [];
 % cfg.funparameter = 'pow';
-% cfg.method = 'cloud';
-% ft_sourceplot(cfg,source);
+% cfg.method = 'surface';
+% cfg.funcolormap = 'jet';
+% ft_sourceplot(cfg,sourceInterp,surf);
 
 end

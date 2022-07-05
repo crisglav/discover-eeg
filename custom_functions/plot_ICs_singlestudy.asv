@@ -1,4 +1,4 @@
-function [IC_plot, ic_kept] = plot_ICs_singlestudy(params,bidsID)
+function [IC_plot, ic_kept, ic_kept_pc] = plot_ICs_singlestudy(params,bidsID)
 x = strsplit(bidsID,'_');
 x = x(1:end-1);
 datapath = fullfile(params.preprocessed_data_path,x{:},'eeg',[bidsID '_eeg.set']);
@@ -43,14 +43,13 @@ if all(~isnan(params.IClabel(1,:)))
     l = {'Brain (kept)','Non-brain'};
 end
 
-IC_plot = figure('Position',[772 801 935 55],'visible','off');
+figure('Position',[772 801 935 55]);
 h = barh(1,ics,'stacked');
 for k = 1:length(c), h(k).FaceColor = c(k,:); end
-legend(l,'Location','east');
+legend(l,'east');
 set(gca,'ytick',[],'yticklabel',{''});
 box('off')
 title('IC classification');
 
-ic_kept = goodics/(nChans-sum(badchans));
 end
 

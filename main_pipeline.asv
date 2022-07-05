@@ -217,14 +217,13 @@ for iRec=1:length(STUDY.datasetinfo)
         end
         
     end
-    
-    % PLOTTING
     % Plot source power in all frequency bands
     fig = plot_power_source(params,bidsID);
     saveas(fig,fullfile(params.source_folder,[bidsID '_source.svg']));
     close(fig);
     
-    for iConMeas = {'dwpli','aec'}     
+    for iConMeas = {'dwpli','aec'}
+        
         % Plot connectivity matrices in all frequency bands and save them in connectivity folder
         fig = plot_connectivity(params,bidsID,iConMeas{:});
         saveas(fig,fullfile(params.connectivity_folder,[bidsID '_' iConMeas{:} '.svg']));
@@ -234,13 +233,21 @@ for iRec=1:length(STUDY.datasetinfo)
         [f_degree, f_cc, f_global] = plot_graph_measures(params,bidsID,iConMeas{:});
         saveas(f_degree,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_degree.svg']));
         saveas(f_cc,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_cc.svg']));
-        saveas(f_global,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_global.svg']));
-        close(f_degree, f_cc, f_global);   
+        saveas(f_global,fullfile(params.graph_folder,[bidsID '_dwpli_global.svg']));
+        close(f_degree, f_cc, f_global);
+        
     end
+    
+    
+
+    
+%     aec_graph_fig = plot_graph_measures(params,bidsID,'aec');
+%     saveas(aec_graph_fig,fullfile(params.graph_folder,[bidsID '_graph_aec.svg']));
+%     close(aec_graph_fig);
     
 end
 % % Generate individual recording reports with figures
-recording_report(params,bidsID)
+% recording_report(params,bidsID)
 
 end
 

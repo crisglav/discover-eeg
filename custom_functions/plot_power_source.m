@@ -1,0 +1,43 @@
+function fig = plot_power_source(params,bidsID)
+
+freqNames = fields(params.freq_band)';    
+
+fig = figure('Position',[412 412 1200 1200]);
+tcl = tiledlayout(2,2);
+
+% Load surface structure
+surf = ft_read_headshape('surface_white_both.mat');
+
+for iFreq=1:length(freqNames)
+    
+    ax = nexttile;
+    
+    % Load source file
+    load(fullfile(params.source_folder,[bidsID '_source_' freqNames{iFreq} '.mat']),'source');
+
+    % Interpolate power to the surface cortex
+    cfg = [];
+    cfg.method = 'nearest';
+    cfg.parameter = 'pow';
+    sourceInterp = ft_sourceinterpolate(cfg, source, surf);
+    
+%     % Plot the interpolated data
+%     cfg = [];
+%     cfg.funparameter = 'pow';
+%     cfg.method = 'surface';
+%     cfg.funcolormap = 'jet';
+%     ft_sourceplot(cfg,sourceInterp);
+    
+    % Plot the interpolated data (Same as with ft_sourceplot but handling axes objects)
+    pow = sourceInterp.pow;
+    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv');
+    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', pow, 'clim', [min(pow) max(pow)],'colormap',jet(64));
+    colorbar;
+    camlight;
+   
+    title(freqNames(iFreq));
+    
+end
+title(tcl,[bidsID ' - Source power'],'Interpreter','None','Fontweight','bold');
+
+end

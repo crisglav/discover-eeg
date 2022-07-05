@@ -19,8 +19,8 @@ params.eeglab_path = '/rechenmagd4/toolboxes_and_functions/eeglab';
 run(fullfile(params.eeglab_path,'eeglab.m'));
 
 % Fieldtrip
-params.fieldtrip_path = '/rechenmagd4/toolboxes_and_functions/fieldtrip'; % fresh from github
-% params.fieldtrip_path = 'C:\Users\Mitarbeiter\fieldtrip'; % fresh from github
+params.fieldtrip_path = '/rechenmagd4/toolboxes_and_functions/fieldtrip';
+% params.fieldtrip_path = 'C:\Users\Mitarbeiter\fieldtrip';
 addpath(params.fieldtrip_path);
 ft_defaults
 
@@ -28,10 +28,6 @@ ft_defaults
 params.bct_path = '/rechenmagd4/toolboxes_and_functions/2019_03_03_BCT';
 % params.bct_path = 'C:\Users\Mitarbeiter\bct\2019_03_03_BCT';
 addpath(params.bct_path);
-
-% BRAPH
-params.braph = '/rechenmagd4/toolboxes_and_functions/BRAPH/BRAPH 1.0.0/graph';
-addpath(params.braph);
 
 % Custom functions
 addpath(fullfile('custom_functions'));
@@ -48,7 +44,7 @@ params.nosedir = '+Y'; % 'RAS' % Needs to be specified in case bidschanloc = 'on
 % Note2: bidschanloc 'on' does not work if one specific task is selected. 
 
 % Add back reference channel
-params.addRefChannel = 'no';
+params.addRefChannel = 'off';
 % Coordinates of the reference electrode X, Y, Z in the same coordinate system as electrodes.tsv
 params.RefCoord.X = 0.3761; 
 params.RefCoord.Y = 27.39;
@@ -57,7 +53,6 @@ if strcmp(params.addRefChannel,'no') || strcmp(params.addRefChannel,'off')
     params.RefCoord.X = [];
     params.RefCoord.Y = [];
     params.RefCoord.Z = [];
-
 end
 
 % Bad channel rejection (Default parameters as defined in clean_rawdata())
@@ -90,7 +85,6 @@ params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','st
 
 % Frequency resolution
 params.freq_res = 1/params.epoch_length; % In Herz
-params.freq_res_connectivity = 0.5; % In Herz. Increase the frequency resolution in computation of connectivity measures to speed up the computation time.
 
 % Frequency bands of interest
 params.freq_band.theta = [4 8-params.freq_res];  % Pernet et al 2021 Nat Neurosc (COBIDAS MEEG recomendations)
@@ -108,10 +102,11 @@ params.tapsmofrq = 1;
 params.volpath = fullfile(params.fieldtrip_path,'template','headmodel','standard_bem.mat');
 % Atlas positions
 params.atlaspath = fullfile('parcellations','Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
-params.mripath = fullfile(params.fieldtrip_path,'template','anatomy','single_subj_T1.nii');
+
+% Connectivity
+params.freq_res_connectivity = 0.5; % In Herz. % Resolution at which dwpli is computed
 
 % Graph measures
-params.graphMeas = {'gcc','transitivity','cpl','geff','smallworldness'}; % Global graph measures
 params.connMatrix_threshold = 0.2;
 
 %% Generated folders (don't need to change anything here)
@@ -125,17 +120,7 @@ params.reports_folder = fullfile(params.preprocessed_data_path,'reports');
 if ~exist(params.reports_folder,'dir')
     mkdir(params.reports_folder);
 end
-% Folder that will contain the EEG_features figures
-params.figures_folder = fullfile(params.preprocessed_data_path,'EEG_features','figures');
-if ~exist(params.figures_folder,'dir')
-    mkdir(params.figures_folder);
-end
 
-% % Folder that will contain peak frequency files
-% params.pf_folder = fullfile(params.preprocessed_data_path,'EEG_features','peak_frequency');
-% if ~exist(params.pf_folder,'dir')
-%     mkdir(params.pf_folder);
-% end
 % Folder that will contain power files
 params.power_folder = fullfile(params.preprocessed_data_path,'EEG_features','power');
 if ~exist(params.power_folder,'dir')

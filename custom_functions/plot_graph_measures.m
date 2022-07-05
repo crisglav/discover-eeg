@@ -1,68 +1,68 @@
-function f_global = plot_graph_measures(params,bidsID,connMeasure)
-% Atlas networks - JUST FOR VISUALIZATION
-% Load atlas
-atlas400 = readtable(params.atlaspath);
-% Points by network
-networks = {'Vis','SomMot','DorsAttn','SalVentAttn','Limbic','Cont','Default'};
-pos = cell(1,length(networks));
-axisticks = ones(1,length(networks)+1);
-axistickslabelpos = ones(1,length(networks));
-for i=1:length(networks)
-    pos{i}  = find(cellfun(@(x) contains(x,['_' networks{i} '_']), atlas400.ROIName)); % all sources belonging to network{i}
-    axisticks(i+1) = length(pos{i})+axisticks(i);
-    axistickslabelpos(i) = axisticks(i)+(axisticks(i+1)-axisticks(i))/2; % set the network label in the middle
-end
-axisticks = axisticks(2:end-1);
+function [f_degree, f_cc, f_global] = plot_graph_measures(params,bidsID,connMeasure)
 
 freqNames = fields(params.freq_band)';
-graphMeas = params.graphMeas;
+graphMeas = {'gcc','geff','smallworldness'};
 spider = nan(length(freqNames),length(graphMeas));
 
-f_degree = figure('Position',[810   759   991   542]);
-f_cc = figure('Position',[810   759   991   542]);
-ax_degree = axes('Parent',f_degree);
-ax_cc = axes('Parent',f_cc);
+f_degree = figure('Position',[412 412 1200 1200]);
+f_cc = figure('Position',[412 412 1200 1200]);
+t_degree = tiledlayout(f_degree,2,2);
+t_cc = tiledlayout(f_cc,2,2);
 
-hold(ax_degree,'on')
-hold(ax_cc,'on')
+% Load dummy source structure for plotting
+load(fullfile(params.source_folder,[bidsID '_source_' freqNames{1} '.mat']),'source');
+
+% Load surface structure
+surf = ft_read_headshape('surface_white_both.mat');
 for iFreq=1:length(freqNames)
     
     % Load graph measures
     load(fullfile(params.graph_folder,[bidsID '_graph_' connMeasure '_' freqNames{iFreq} '.mat']),'graph_measures');
+        
+    % Copy the pow structure and update with cc and degree
+    source.avg.degree = graph_measures.degree;
+    source.avg.cc = graph_measures.cc;
+
+    % Interpolate local graph measures to the surface cortex
+    cfg = [];
+    cfg.method = 'nearest';
+    cfg.parameter = {'degree','cc'};
+    sourceInterp = ft_sourceinterpolate(cfg, source, surf);
+       
+    % Plot the interpolated data (Same as with ft_sourceplot but handling axes objects)
+    degree = sourceInterp.degree;
+    cc = sourceInterp.cc;
     
-    % Local measures
-    scatter(ax_degree,1:length(graph_measures.degree), graph_measures.degree,10,'filled');
-    hold(ax_degree,'on')
-    scatter(ax_cc,1:length(graph_measures.cc), graph_measures.cc,10,'filled');
-    hold(ax_cc,'on');
+    nexttile(t_degree);
+    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv');
+    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', degree, 'clim', [min(degree) max(degree)],'colormap',jet(64));
+    colorbar;
+    camlight;  
+    title(freqNames(iFreq));
+    
+    nexttile(t_cc);
+    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv');
+    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', cc, 'clim', [min(cc) max(cc)],'colormap',jet(64));
+    colorbar;
+    camlight;  
+    title(freqNames(iFreq));
 
     % Set global graph measures in a matrix for plotting
     for iG = 1:length(graphMeas)
         spider(iFreq,iG) = graph_measures.(graphMeas{iG});
     end   
 end
-% Draw vertical lines separating networks
-for i=1:length(axisticks)
-    xline(ax_degree,axisticks(i),'k','LineWidth',1)
-    xline(ax_cc,axisticks(i),'k','LineWidth',1)
-end
-hold(ax_degree,'off');
-hold(ax_cc,'off');
-set(ax_degree,'XTick',axistickslabelpos,'XtickLabel',networks,'XtickLabelRotation',45,'TickLength',[0 0],'TickDir','out','box','off');
-set(ax_cc,'XTick',axistickslabelpos,'XtickLabel',networks,'XtickLabelRotation',45,'TickLength',[0 0],'TickDir','out','box','off');
-title(ax_cc,'Local clustering coefficient');
-title(ax_degree,'Degree');
-legend(ax_degree,freqNames);
-legend(ax_cc,freqNames);
-close(f_degree,f_cc) % NOT SAVED
 
-axeslim = [0, 0, 0, 0, 0; 1, 1, max(spider(:,3)), 1, max(spider(:,5))];
+title(t_degree,[bidsID ' - Degree'],'Interpreter','None','Fontweight','bold');
+title(t_cc,[bidsID ' - Local clust. coef.'],'Interpreter','None','Fontweight','bold');
 
-f_global = figure;
+% Spider plot with global measures
+f_global = figure('Position', [1988, 672, 780, 657]);
+axeslim = [0, 0, min(spider(:,3)); 1, 1, max(spider(:,3))];
 spider_plot(spider,...
     'AxesLabels', graphMeas, ...
     'AxesLimits',axeslim);
-title('Goblal graph measures')    
+title(t_cc,[bidsID ' - Goblal graph measures'],'Interpreter','None');
 legend(freqNames, 'Location', 'south');
 
 end

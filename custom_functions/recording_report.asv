@@ -29,7 +29,7 @@ add(ch1, bc_f);
 sec2 = Section;
 sec2.Title = 'ICA. Independent component classification';
 append(ch1,sec2);
-[IC_plot, ic_kept] = plot_ICs_singlestudy(params, bidsID);
+[IC_plot, ic_kept, ic_kept_pc] = plot_ICs_singlestudy(params, bidsID);
 para = Paragraph('Artefactual independent components were detected automatically with ICLabel. By default, components whose probability of being ''Muscle'' or ''Eye'' are higher than 80% are marked as artifactual and substracted from the data.');
 append(ch1,para);
 para1 = Paragraph(['In the current run, the threshold used was ' num2str(params.IClabel(2,1)*100, '%.2f') '% for Muscle and ' num2str(params.IClabel(3,1)*100, '%.2f') '% for Eye components.']);
