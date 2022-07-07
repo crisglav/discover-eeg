@@ -21,10 +21,9 @@ cmap = [1 1 1; lines(1)];
 if all(all(badchans == 0)), cmap = [1 1 1]; end
 
 % Plot the heatmap
-figure('Position',[772 801 935 55],'visible','off');
+figure('Position',[1988 548 1500 200],'visible','off');
 bc_plot = heatmap(chanlabels,'-',double(badchans)','CellLabelColor','none','Colormap',cmap,'ColorbarVisible','off');
 bc_plot.Title = 'Bad channels';
 bc_plot.XLabel = 'Channels';
-
 end
 

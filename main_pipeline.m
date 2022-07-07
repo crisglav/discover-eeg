@@ -92,7 +92,7 @@ EEG = pop_iclabel(EEG,'default');
 EEG = pop_icflag(EEG, params.IClabel); % flag artifactual components using IClabel
 classifications = cellfun(@(x) x.ic_classification.ICLabel.classifications, {EEG.etc},'UniformOutput', false); % Keep classifications before component substraction
 EEG = pop_subcomp(EEG,[],0); % Substract artifactual independent components
-for iRec=1:length(classifications)
+for iRec=1:length(EEG)
     EEG(iRec).etc.ic_classification.ICLabel.orig_classifications = classifications{iRec};
 end
 
@@ -103,7 +103,7 @@ plot_ICs(params,EEG);
 for iRec=1:size(EEG,2)
     EEGtemp = eeg_checkset(EEG(iRec),'loaddata'); % Retrieve data
     urchanlocs = EEGtemp.urchanlocs;
-    [~, iref] = setdiff({EEGtemp.chanlocs.labels},{EEGtemp.urchanlocs.labels});
+    [~, iref] = setdiff({EEGtemp.chanlocs.labels},{EEGtemp.urchanlocs.labels}); % Handle reference in case it was added back
     if ~isempty(iref)
         urchanlocs(end+1) = EEGtemp.chanlocs(iref);
     end
@@ -123,7 +123,9 @@ EEG = pop_clean_rawdata(EEG,'FlatlineCriterion','off',...
                             'BurstRejection','on',...
                             'Distance','Euclidian',...
                             'WindowCriterionTolerances',params.WindowCriterionTolerances);
-
+for iRec=1:length(EEG)
+    EEG(iRec).etc.eventsAfterCRD = EEG(iRec).event;
+end
 % Visualization of rejected time segments
 plot_badtimesegments(params,EEG);
 
@@ -238,10 +240,9 @@ for iRec=1:length(STUDY.datasetinfo)
         close(f_degree, f_cc, f_global);   
     end
     
+% Generate individual recording reports with figures
+recording_report(params,bidsID)    
 end
-% % Generate individual recording reports with figures
-recording_report(params,bidsID)
-
 end
 
 

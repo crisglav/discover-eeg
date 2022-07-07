@@ -43,12 +43,13 @@ if all(~isnan(params.IClabel(1,:)))
     l = {'Brain (kept)','Non-brain'};
 end
 
-IC_plot = figure('Position',[772 801 935 55],'visible','off');
+IC_plot = figure('Position',[1988 548 1500 300],'visible','off');
 h = barh(1,ics,'stacked');
 for k = 1:length(c), h(k).FaceColor = c(k,:); end
-legend(l,'Location','east');
+legend(l,'Location','northeast');
 set(gca,'ytick',[],'yticklabel',{''});
 box('off')
+xlabel('Number of components');
 title('IC classification');
 
 ic_kept = goodics/(nChans-sum(badchans));

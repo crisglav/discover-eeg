@@ -7,7 +7,7 @@ params.study = 'CGX_MS';
 params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/rawBIDS'; 
 % params.raw_data_path = '/rechenmagd3/CGX_MS/EEG/rawBIDS';
 % params.raw_data_path = 'C:\Users\Mitarbeiter\eeg_datasets\rawBIDS';
-params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives'); 
+params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives2'); 
 % params.preprocessed_data_path = '/rechenmagd3/CGX_MS/EEG/preprocessed_Pernet2019_Interpolationv4';
 params.task =  []'; % 'restEC'; % [] % if you want all tasks
 
@@ -32,8 +32,7 @@ addpath(params.bct_path);
 % Custom functions
 addpath(fullfile('custom_functions'));
 % External functions (mainly from matlab central)
-% addpath(fullfile('external_functions'));
-addpath(fullfile('external_functions','spider_plot-master'));
+addpath(fullfile('external_functions'));
 %% PREPROCESSING PARAMETERS
 params.bidschanloc = 'off'; % Default 'off', only set to on if you have nonstandard EEG channels or you recorded the electrodes positions
 params.nosedir = '+Y'; % 'RAS' % Needs to be specified in case bidschanloc = 'on'
@@ -92,8 +91,7 @@ params.freq_band.alpha = [8 13-params.freq_res]; % Pernet et al 2021 Nat Neurosc
 params.freq_band.beta = [13 30];                 % Pernet et al 2021 Nat Neurosc (COBIDAS MEEG recomendations)
 params.freq_band.gamma = [60 100];               % Avoid line noise at 50 Hz
 
-% Peak frequency
-% For the computation of the power spectrum a multitaper method is used
+% Power spectrum
 params.taper = 'dpss';
 params.tapsmofrq = 1;
 
@@ -102,8 +100,10 @@ params.tapsmofrq = 1;
 params.volpath = fullfile(params.fieldtrip_path,'template','headmodel','standard_bem.mat');
 % Atlas positions
 params.atlaspath = fullfile('parcellations','Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
+% Surface model
+params.surf = fullfile(params.fieldtrip_path,'template','anatomy','surface_white_both.mat');
 
-% Connectivity
+% Connectivity - dwpli
 params.freq_res_connectivity = 0.5; % In Herz. % Resolution at which dwpli is computed
 
 % Graph measures

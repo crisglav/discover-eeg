@@ -6,11 +6,11 @@ fig = figure('Position',[412 412 1200 1200]);
 tcl = tiledlayout(2,2);
 
 % Load surface structure
-surf = ft_read_headshape('surface_white_both.mat');
+surf = ft_read_headshape(params.surf);
 
 for iFreq=1:length(freqNames)
     
-    ax = nexttile;
+    nexttile;
     
     % Load source file
     load(fullfile(params.source_folder,[bidsID '_source_' freqNames{iFreq} '.mat']),'source');
