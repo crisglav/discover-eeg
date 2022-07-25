@@ -16,9 +16,10 @@ save(fullfile(params.preprocessed_data_path,'pipeline_params.mat'),'params');
     'studyName',params.study,'bidstask',params.task,'bidschanloc',params.bidschanloc,'bidsevent','off');
 
 for iRec=1:length(ALLEEG)
-    EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata'); % Retrieve data
+    % Retrieve data
+    EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata');
     
-    % Add Reference electrode
+    % Add reference electrode
     EEGtemp = pop_chanedit(EEGtemp, 'append',EEGtemp.nbchan, ...
         'changefield', {EEGtemp.nbchan+1,'labels',bids.data(iRec).EEGReference},...
         'changefield', {EEGtemp.nbchan+1, 'X', params.RefCoord.X}, ...
@@ -26,10 +27,11 @@ for iRec=1:length(ALLEEG)
         'changefield', {EEGtemp.nbchan+1, 'Z', params.RefCoord.Z},...
         'setref',{['1:' num2str(EEGtemp.nbchan)],bids.data(iRec).EEGReference});
     
+    % Use electrode positions from the electrodes.tsv file or from a standard template in the MNI coordinate system
     if strcmp(params.bidschanloc, 'on')
-        % Set the elecrodes coordinate system
+        % If electrode positions are chosen from the .tsv the coordinate
+        % system might need to be adjusted (user has to define it in define_params.m)
         EEGtemp = pop_chanedit(EEGtemp, 'nosedir',params.nosedir);
-        % eeg channels
         eegchans = find(contains(lower({ALLEEG(1).chanlocs.type}),'eeg'));
     else
         % Look for electrode positions in a standard template
@@ -43,16 +45,17 @@ for iRec=1:length(ALLEEG)
         end
     end
     
-    % Select only EEG channels
+    % Select only EEG channels for preprocessing
     EEGtemp = pop_select(EEGtemp, 'channel', eegchans);
     EEGtemp.chaninfo.removedchans = [];
-
+    
+    % Save datafile, clear it from memory and store it in the ALLEEG structure
     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
-    EEGtemp.data = 'in set file'; % clear data from memory
+    EEGtemp.data = 'in set file';
     ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
 end  
 
-% Check that the electrode position is ok
+% % OPTIONAL - Check that the electrode position is ok
 % figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo',ALLEEG(1).chaninfo);
 % hold on,
 % figure; topoplot([],ALLEEG(1).chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
@@ -74,7 +77,6 @@ EEG = pop_clean_rawdata(EEG,'FlatlineCriterion', params.FlatlineCriterion,...
                             'BurstRejection','off',...
                             'Distance','Euclidian',...
                             'WindowCriterionTolerances','off');
-
 % Visualization of detected bad channels. If you set 'FuseChanRej' on, the union of
 % bad channels in all tasks is rejected!
 plot_badchannels(params,EEG);
@@ -95,7 +97,6 @@ EEG = pop_subcomp(EEG,[],0); % Substract artifactual independent components
 for iRec=1:length(EEG)
     EEG(iRec).etc.ic_classification.ICLabel.orig_classifications = classifications{iRec};
 end
-
 % Visualization of rejected ICs
 plot_ICs(params,EEG);
 
@@ -124,15 +125,19 @@ EEG = pop_clean_rawdata(EEG,'FlatlineCriterion','off',...
                             'Distance','Euclidian',...
                             'WindowCriterionTolerances',params.WindowCriterionTolerances);
 for iRec=1:length(EEG)
-    EEG(iRec).etc.eventsAfterCRD = EEG(iRec).event;
+    EEG(iRec).etc.eventsAfterCRD = EEG(iRec).event; % Keep events for visualization later on.
 end
 % Visualization of rejected time segments
 plot_badtimesegments(params,EEG);
 
 % 6. SEGMENT DATA INTO EPOCHS
+% EEGLab pop_epoch is designed to trim the data based on events. For
+% resting-state data, in which no events are defined, this function is
+% tricky to use. I added markers called 'epoch_start' each X s with a duration of 1 sample.
+% In this case X is epoch
 % Note: Epochs containing discontinutities will be automatically rejected.
 for iRec=1:size(EEG,2)
-    % Create markers each x seconds and add them at the end of existing markers
+    % Create markers each x seconds and add them at the end of existing event markers
     epoch_start = 1 : EEG(iRec).srate * params.epoch_length * (1-params.epoch_overlap) : EEG(iRec).pnts;
     nEpochs = length(epoch_start);
     if ~isempty(EEG(iRec).event)
