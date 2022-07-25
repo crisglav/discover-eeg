@@ -108,7 +108,8 @@ params.epoch_overlap = 0.5; % In percentage
 params.freq_res = 1/params.epoch_length; % In Herz
 % Type of taper for computing the power spectrum (default 'dpss')
 params.taper = 'dpss';
-% Frequency smoothing of the power spectrum (default 1)
+
+% Frequency smoothing of the power spectrum(default 1 Hz)
 params.tapsmofrq = 1;
 
 % Frequency bands of interest (default values for theta, alpha, beta as in
@@ -121,14 +122,13 @@ params.freq_band.gamma = [60 100];
 % ==== Source reconstruction =====
 % Head model (default 'standard_bem.mat')
 params.volpath = fullfile(params.fieldtrip_path,'template','headmodel','standard_bem.mat');
-% Atlas positions (default 400 source positions based on the Schaefer atlas: 'Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv')
+% Atlas positions (default 400 source positions based on the Schaefer atlas)
 params.atlaspath = fullfile('parcellations','Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
-% Brain surface model for plotting (default 'surface_white_both.mat')
+% Surface model for plotting (default 'surface_white_both.mat')
 params.surf = fullfile(params.fieldtrip_path,'template','anatomy','surface_white_both.mat');
 
 % ===== Connectivity =====
-% Resolution at which dwpli is computed (default 0.5),
-% i.e. dwpli is computed each 0.5 Hz and averaged in the respective frequency band range
+% Resolution at which dwpli is computed
 params.freq_res_connectivity = 0.5; % In Herz.
 
 % ===== Graph measures =====

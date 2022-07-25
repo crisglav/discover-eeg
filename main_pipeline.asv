@@ -8,8 +8,8 @@ rng('default'); % For reproducibility - See discussion in https://sccn.ucsd.edu/
 
 % Define the parameters
 params = define_params();
-cd(params.main_folder)
 save(fullfile(params.preprocessed_data_path,'pipeline_params.mat'),'params');
+cd(params.main_folder)
 %% Import data
 % Import raw data in BIDS format...
 [STUDY, ALLEEG, bids] = pop_importbids(params.raw_data_path,'outputdir',params.preprocessed_data_path,...
@@ -89,7 +89,7 @@ else
 end
 
 % 3. REMOVE ARTIFACTS WITH ICA
-EEG = pop_runica(EEG,'icatype','runica','concatcond','off');
+EEG = pop_runica(EEG,'icatype','runica','concatcond','on');
 EEG = pop_iclabel(EEG,'default');
 EEG = pop_icflag(EEG, params.IClabel); % flag artifactual components using IClabel
 classifications = cellfun(@(x) x.ic_classification.ICLabel.classifications, {EEG.etc},'UniformOutput', false); % Keep classifications before component substraction
@@ -171,7 +171,7 @@ clear EEG ALLEEG;
 
 % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
 % params = define_params();
-% cd(params.main_folder)
+cd(params.main_folder)
 % [STUDY, EEG] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
 %%
 % Visualization of corregistration of electroes and sources for one exemplary dataset (check that
