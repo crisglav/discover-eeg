@@ -60,7 +60,7 @@ The brain features in the source space are computed separately for four frequenc
     * The path to your BIDS raw data in `params.raw_data_path`
     * If not done previously, the paths of the needed toolboxes
 * Run `main_pipeline.m`
-* By default the output of the pipeline will be found in a subfolder of your ras data folder called 'derivatives_vYYYY_MM_DD'
+* By default the output of the pipeline will be found in a subfolder of your raw data folder called 'derivatives_vYYYY_MM_DD'
 
 ## Dataset to test the pipeline
 A small resting-state dataset with raw data in BIDS format to test this pipeline is available in: XXXX
