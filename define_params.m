@@ -14,7 +14,6 @@ params.raw_data_path = 'C:\Users\Mitarbeiter\eeg_datasets\rawBIDS';
 % brain features). By default is stored in a created 'derivatives' folder.
 t = datestr(now,'yyyy_mm_dd');
 params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' t]);
-params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives_v2022_07_26');
 
 % Parameter to select a specific task. If you want to look at a specific task, specify its name as in the BIDS
 % standard (e.g. 'closed', 'open'). By default all tasks are processed ([])
