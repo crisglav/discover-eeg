@@ -15,7 +15,6 @@ pf_fig = figure('Position',[1988 548 781 781]);
 findpeaks(avgpow(freqRange),power.freq(freqRange),'SortStr','descend','NPeaks',1);
 hold on
 plot(peakfrequency.cog,interp1(power.freq(freqRange),avgpow(freqRange),peakfrequency.cog),'v','MarkerEdgeColor','#D95319','MarkerFaceColor','#D95319');
-title(['Peak frequency - ' bidsID],'Interpreter','None');
 ylabel('Power (uV/Hz)')
 xlabel('Frequency (Hz)')
 hold on
@@ -26,5 +25,6 @@ h(2) = plot(nan,nan,'v','MarkerEdgeColor','#D95319','MarkerFaceColor','#D95319')
 legend(h,{'Maximum peak','Center of gravity'},'Location','southeast');
 hold off
 
+title(['Peak frequency of ' bidsID],'Interpreter','None');
 
 end

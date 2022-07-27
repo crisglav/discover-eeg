@@ -1,6 +1,6 @@
-% Preprocess EEG data and extracts brain featues
+% Imports EEG dataset, preprocesses it, and extracts brain features
 % 
-% Cristina Gil, TUM, 10.06.2022
+% Cristina Gil, TUM, cristina.gil@tum.de, 25.07.2022
 function main_pipeline()
 
 clear all; close all;
@@ -10,8 +10,9 @@ rng('default'); % For reproducibility - See discussion in https://sccn.ucsd.edu/
 params = define_params();
 cd(params.main_folder)
 save(fullfile(params.preprocessed_data_path,'pipeline_params.mat'),'params');
-%% Import data
-% Import raw data in BIDS format...
+
+%% ======= IMPORT RAW DATA =========
+% Import raw data in BIDS format
 [STUDY, ALLEEG, bids] = pop_importbids(params.raw_data_path,'outputdir',params.preprocessed_data_path,...
     'studyName',params.study,'bidstask',params.task,'bidschanloc',params.bidschanloc,'bidsevent','off');
 
@@ -55,7 +56,7 @@ for iRec=1:length(ALLEEG)
     ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
 end  
 
-% % OPTIONAL - Check that the electrode position is ok
+% % OPTIONAL - Check that the electrodes positions are ok
 % figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo',ALLEEG(1).chaninfo);
 % hold on,
 % figure; topoplot([],ALLEEG(1).chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
@@ -63,6 +64,7 @@ end
 CURRENTSTUDY = 1;
 EEG = ALLEEG;
 CURRENTSET = 1:length(EEG);
+
 %% ======== PREPROCESSING =========
 
 % 1. REMOVE BAD CHANNELS
@@ -133,8 +135,7 @@ plot_badtimesegments(params,EEG);
 % 6. SEGMENT DATA INTO EPOCHS
 % EEGLab pop_epoch is designed to trim the data based on events. For
 % resting-state data, in which no events are defined, this function is
-% tricky to use. I added markers called 'epoch_start' each X s with a duration of 1 sample.
-% In this case X is epoch
+% tricky to use. I added markers called 'epoch_start' each 10*(1-0.5) = 5 seconds with a duration of 1 sample.
 % Note: Epochs containing discontinutities will be automatically rejected.
 for iRec=1:size(EEG,2)
     % Create markers each x seconds and add them at the end of existing event markers
@@ -165,20 +166,19 @@ ALLEEG = EEG;
 STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.study '_preprocessed'], 'filepath', params.preprocessed_data_path);
 
 clear EEG ALLEEG;
-% ======== END OF PREPROCESSING =========
 
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-% params = define_params();
-% cd(params.main_folder)
-% [STUDY, EEG] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
-%%
-% Visualization of corregistration of electroes and sources for one exemplary dataset (check that
-% electrodes are aligned with the head model)
+params = define_params();
+cd(params.main_folder)
+[STUDY, ~] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
+
+% % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
+% % electrodes are aligned with the head model)
 % plot_electrodesandsources(params,'sub-01_task-closed')
 % 
-% % Visualization of atlas regions by network
+% % OPTIONAL -  Visualization of atlas regions by network
 % plot_atlasregions(params);
 
 
@@ -208,7 +208,7 @@ for iRec=1:length(STUDY.datasetinfo)
         
         % 4.A FUNCTIONAL CONNECTIVITY - dwPLI
         if ~exist(fullfile(params.connectivity_folder,[bidsID '_dwpli_' iFreq{:} '.mat']),'file')
-            compute_dwpli(params,bidsID,iFreq{:});
+            compute_dwpli_felix(params,bidsID,iFreq{:});
         end
         
         % 4.B FUNCTIONAL CONNECTIVITY - AEC

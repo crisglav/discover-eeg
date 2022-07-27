@@ -38,6 +38,6 @@ for iFreq=1:length(freqNames)
     title(freqNames(iFreq));
     
 end
-title(tcl,[bidsID ' - Source power'],'Interpreter','None','Fontweight','bold');
+title(tcl,{'Source power of ', bidsID},'Interpreter','None');
 
 end

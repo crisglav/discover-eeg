@@ -40,7 +40,7 @@ for iFreq=1:length(freqNames)
     title(freqNames(iFreq));
     
 end
-title(tcl,[bidsID ' - Average ' connMeasure ],'Interpreter','None','Fontweight','bold');
+title(tcl,['Average ' connMeasure ' of ' bidsID],'Interpreter','None');
 
 % % Plot only one matrix at a freq band
 % % Thresholded connectivity matrix reorderd by networks

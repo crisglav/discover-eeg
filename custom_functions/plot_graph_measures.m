@@ -53,16 +53,18 @@ for iFreq=1:length(freqNames)
     end   
 end
 
-title(t_degree,[bidsID ' - Degree'],'Interpreter','None','Fontweight','bold');
-title(t_cc,[bidsID ' - Local clust. coef.'],'Interpreter','None','Fontweight','bold');
+title(t_degree,{[connMeasure ' - Degree'],bidsID},'Interpreter','None');
+title(t_cc,{[connMeasure ' - Clustering coef.'],bidsID},'Interpreter','None');
 
 % Spider plot with global measures
 f_global = figure('Position', [1988, 672, 780, 657]);
 axeslim = [0, 0, min(spider(:,3)); 1, 1, max(spider(:,3))];
 spider_plot(spider,...
-    'AxesLabels', graphMeas, ...
-    'AxesLimits',axeslim);
-title(t_cc,[bidsID ' - Goblal graph measures'],'Interpreter','None');
+    'AxesLabels', {'Global clustering coef.','Global efficiency','Smallworldness'}, ...
+    'AxesLimits',axeslim, ...
+    'AxesLabelsEdge','none');
+ax_global = get(f_global,'CurrentAxes');
+title(ax_global,{[connMeasure ' - Global measures'], bidsID},'Interpreter','None');
 legend(freqNames, 'Location', 'south');
 
 end

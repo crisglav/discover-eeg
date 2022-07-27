@@ -53,6 +53,6 @@ b = toc;
 [nRows, nCols] = size(connMatrix);
 connMatrix(1:nRows+1:nRows*nCols) = nan;
 disp([bidsID '_', freqBand, ' computation took ', num2str(b/60), ' minutes'])
-save(fullfile(params.connectivity_folder,[bidsID '_dwpliFelix_' freqBand '.mat']),'connMatrix')
+save(fullfile(params.connectivity_folder,[bidsID '_dwpli_' freqBand '.mat']),'connMatrix')
 
 end
