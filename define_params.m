@@ -5,29 +5,29 @@ function params = define_params()
 %% DATA AND TOOLBOXES PATHS (TO BE MODIFIED BY USER)
 
 % The name of your study
-params.study = 'CBP-mini';
+params.study = 'CGX_MS';
 
 % The path of your raw data in BIDS format
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini';
+params.raw_data_path = 'C:\Users\Mitarbeiter\eeg_datasets\rawBIDS';
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
 t = datestr(now,'yyyy_mm_dd');
-params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives v' t]);
-params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives v2022_07_26');
+params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' t]);
+params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives_v2022_07_26');
 
 % Parameter to select a specific task. If you want to look at a specific task, specify its name as in the BIDS
 % standard (e.g. 'closed', 'open'). By default all tasks are processed ([])
 params.task =  [];
 
 % EEGLab path
-params.eeglab_path = '/rechenmagd4/toolboxes_and_functions/eeglab';
+params.eeglab_path = 'C:\Users\Mitarbeiter\eeglab';
 
 % Fieldtrip path
-params.fieldtrip_path = '/rechenmagd4/toolboxes_and_functions/fieldtrip';
+params.fieldtrip_path = 'C:\Users\Mitarbeiter\fieldtrip';
 
 % Brain Connectivity Toolbox path
-params.bct_path = '/rechenmagd4/toolboxes_and_functions/2019_03_03_BCT';
+params.bct_path = 'C:\Users\Mitarbeiter\2019_03_03_BCT';
 
 % Add the toolboxes and pipeline functions to matlab path (do not need to be modified by the user)
 run(fullfile(params.eeglab_path,'eeglab.m'));
@@ -45,7 +45,7 @@ addpath(genpath(fullfile('external_functions')));
 % you can set this paramter to 'on' and the positions of the '*_electrodes.tsv' file will be used.
 % Please if set to 'on', specify also the coordinate system of the recorded
 % '*_electrodes.tsv' in params.nosedir
-params.bidschanloc = 'on'; 
+params.bidschanloc = 'off'; 
 if strcmp(params.bidschanloc,'on')
     params.nosedir = '+Y'; % 'RAS'
     % Note: Be careful with the orientationof the electrodes. If the coordinate system of the '*_electrodes.tsv'
@@ -59,9 +59,7 @@ end
 % standard BEM head model. If you have additional non-standard electrodes (e.g. LE and RE)
 % you can define here your own electrode template (e.g. point to the '*_electrodes.tsv', but make sure that 
 % it is properly aligned with the head model.
-% params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
-params.elec_template = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini/sub-CBPpa02/eeg/sub-CBPpa02_electrodes.tsv';
-
+params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
 
 % ===== Bad channel rejection =====
 % Parameters for the bad channel rejection (Default values as in clean_rawdata())
@@ -77,7 +75,7 @@ params.FuseChanRej = 'off'; % If 'on' reject the union of bad channels detected 
 % electrode after rereferencing to the average reference. In that case add
 % also the coordinates of the reference channel in the same same coordinate system as electrodes.tsv or in the
 % MNI system depending on th params.bidschanloc
-params.addRefChannel = 'on';
+params.addRefChannel = 'off';
 if strcmp(params.addRefChannel,'on')
     % Coordinates of the reference electrode X, Y, Z in the same coordinate system as electrodes.tsv
     params.RefCoord.X = 0.3761; 
