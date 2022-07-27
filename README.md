@@ -3,7 +3,6 @@
 This is a workflow that preprocess EEG data and extracts several brain features. 
 The input data needs to be raw EEG data in BIDS format.
 
-
 ## Description
 The preprocessing of the EEG data is based on Pernet et. al 2019. The main steps are:
 - Detection and rejection of bad channels
