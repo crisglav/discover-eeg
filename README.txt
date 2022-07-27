@@ -25,7 +25,7 @@ A report of each dataset containing information and visualization of intermediat
 
 ## Getting started
 ### Dependencies
-* Matlab with Signal Processing Toolbox and Statistical Toolbox (Developed and tested on ML2020b)
+* Matlab with Signal Processing Toolbox and Statistical Toolbox (Developed and tested on ML2020b; also tested in ML2022a and ML2021b, in which plotting might not work)
 * EEGLab (Developed and tested with v2022.0) The following EEGlab plugins need to be installed:
     * bids-matlb-tool v6.1 (https://github.com/sccn/bids-matlab-tools)
     * (optional) bva-io (https://github.com/arnodelorme/bva-io) is needed if your data is in BVA format
@@ -63,7 +63,7 @@ A report of each dataset containing information and visualization of intermediat
     * The path to your BIDS raw data in params.raw_data_path
     * If not done previously, the path of the needed toolboxes
 * Run main_pipeline.m 
-* By default the output of the pipeline will be found in a 'derivatives' subfolder of your path/to/raw/data
+* By default the output of the pipeline will be found in a 'derivatives_vYYYY_MM_DD' subfolder of your path/to/raw/data
 
 ## Dataset to test the pipeline
 A small resting-state dataset with raw data in BIDS format to test this pipeline is available in: XXXX
