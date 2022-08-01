@@ -29,7 +29,7 @@ gcc = mean(cc);
 % Characteristic path length
 distance = distance_bin(adjacency_matrix);
 [cpl, ~] = charpath(distance,0,0); % it does not include infinite distances in the calculation 
-% Global efficiency - The average shortest path between two points of the network
+% Global efficiency - The average of the inverse shortest path between two points of the network
 geff = efficiency_bin(adjacency_matrix); % it does include infinite distances in the calculation
 
 % ----- Small-worldness -----
