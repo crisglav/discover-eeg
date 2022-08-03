@@ -8,25 +8,33 @@ function params = define_params()
 params.study = 'CGX_MS';
 
 % The path of your raw data in BIDS format
+<<<<<<< HEAD
 params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/rawBIDS';
+=======
+params.raw_data_path = 'C:\Users\Mitarbeiter\eeg_datasets\rawBIDS';
+>>>>>>> eb8daaa6d2040e5dac1245259d8fea1c6392c02f
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
 t = datestr(now,'yyyy_mm_dd');
+<<<<<<< HEAD
 params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives v' t]);
+=======
+params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' t]);
+>>>>>>> eb8daaa6d2040e5dac1245259d8fea1c6392c02f
 
 % Parameter to select a specific task. If you want to look at a specific task, specify its name as in the BIDS
 % standard (e.g. 'closed', 'open'). By default all tasks are processed ([])
 params.task =  [];
 
 % EEGLab path
-params.eeglab_path = '/rechenmagd4/toolboxes_and_functions/eeglab';
+params.eeglab_path = 'C:\Users\Mitarbeiter\eeglab';
 
 % Fieldtrip path
-params.fieldtrip_path = '/rechenmagd4/toolboxes_and_functions/fieldtrip';
+params.fieldtrip_path = 'C:\Users\Mitarbeiter\fieldtrip';
 
 % Brain Connectivity Toolbox path
-params.bct_path = '/rechenmagd4/toolboxes_and_functions/2019_03_03_BCT';
+params.bct_path = 'C:\Users\Mitarbeiter\2019_03_03_BCT';
 
 % Add the toolboxes and pipeline functions to matlab path (do not need to be modified by the user)
 run(fullfile(params.eeglab_path,'eeglab.m'));
@@ -59,7 +67,10 @@ end
 % you can define here your own electrode template (e.g. point to the '*_electrodes.tsv', but make sure that 
 % it is properly aligned with the head model.
 params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
+<<<<<<< HEAD
 
+=======
+>>>>>>> eb8daaa6d2040e5dac1245259d8fea1c6392c02f
 
 % ===== Bad channel rejection =====
 % Parameters for the bad channel rejection (Default values as in clean_rawdata())

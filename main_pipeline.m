@@ -246,8 +246,8 @@ for iRec=1:length(STUDY.datasetinfo)
         close(f_degree, f_cc, f_global);   
     end
     
-% Generate individual recording reports with figures
-recording_report(params,bidsID)    
+    % Generate individual recording reports with figures
+    recording_report(params,bidsID)    
 end
 end
 
