@@ -8,11 +8,12 @@ function params = define_params()
 params.study = 'CGX_MS';
 
 % The path of your raw data in BIDS format
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini';
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/rawBIDS';
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
-params.preprocessed_data_path = fullfile(params.raw_data_path, 'derivatives');
+t = datestr(now,'yyyy_mm_dd');
+params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives v' t]);
 
 % Parameter to select a specific task. If you want to look at a specific task, specify its name as in the BIDS
 % standard (e.g. 'closed', 'open'). By default all tasks are processed ([])
@@ -74,7 +75,7 @@ params.FuseChanRej = 'off'; % If 'on' reject the union of bad channels detected 
 % electrode after rereferencing to the average reference. In that case add
 % also the coordinates of the reference channel in the same same coordinate system as electrodes.tsv or in the
 % MNI system depending on th params.bidschanloc
-params.addRefChannel = 'off';
+params.addRefChannel = 'on';
 if strcmp(params.addRefChannel,'on')
     % Coordinates of the reference electrode X, Y, Z in the same coordinate system as electrodes.tsv
     params.RefCoord.X = 0.3761; 
@@ -108,8 +109,7 @@ params.epoch_overlap = 0.5; % In percentage
 params.freq_res = 1/params.epoch_length; % In Herz
 % Type of taper for computing the power spectrum (default 'dpss')
 params.taper = 'dpss';
-
-% Frequency smoothing of the power spectrum(default 1 Hz)
+% Frequency smoothing of the power spectrum (default 1)
 params.tapsmofrq = 1;
 
 % Frequency bands of interest (default values for theta, alpha, beta as in
@@ -122,13 +122,14 @@ params.freq_band.gamma = [60 100];
 % ==== Source reconstruction =====
 % Head model (default 'standard_bem.mat')
 params.volpath = fullfile(params.fieldtrip_path,'template','headmodel','standard_bem.mat');
-% Atlas positions (default 400 source positions based on the Schaefer atlas)
+% Atlas positions (default 400 source positions based on the Schaefer atlas: 'Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv')
 params.atlaspath = fullfile('parcellations','Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
-% Surface model for plotting (default 'surface_white_both.mat')
+% Brain surface model for plotting (default 'surface_white_both.mat')
 params.surf = fullfile(params.fieldtrip_path,'template','anatomy','surface_white_both.mat');
 
 % ===== Connectivity =====
-% Resolution at which dwpli is computed
+% Resolution at which dwpli is computed (default 0.5),
+% i.e. dwpli is computed each 0.5 Hz and averaged in the respective frequency band range
 params.freq_res_connectivity = 0.5; % In Herz.
 
 % ===== Graph measures =====
