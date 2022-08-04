@@ -5,36 +5,28 @@ function params = define_params()
 %% DATA AND TOOLBOXES PATHS (TO BE MODIFIED BY USER)
 
 % The name of your study
-params.study = 'CGX_MS';
+params.study = 'FM-mini';
 
 % The path of your raw data in BIDS format
-<<<<<<< HEAD
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/rawBIDS';
-=======
-params.raw_data_path = 'C:\Users\Mitarbeiter\eeg_datasets\rawBIDS';
->>>>>>> eb8daaa6d2040e5dac1245259d8fea1c6392c02f
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/FM-mini';
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
 t = datestr(now,'yyyy_mm_dd');
-<<<<<<< HEAD
-params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives v' t]);
-=======
 params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' t]);
->>>>>>> eb8daaa6d2040e5dac1245259d8fea1c6392c02f
 
 % Parameter to select a specific task. If you want to look at a specific task, specify its name as in the BIDS
 % standard (e.g. 'closed', 'open'). By default all tasks are processed ([])
-params.task =  [];
+params.task =  'closed';
 
 % EEGLab path
-params.eeglab_path = 'C:\Users\Mitarbeiter\eeglab';
+params.eeglab_path = '/rechenmagd4/toolboxes_and_functions/eeglab';
 
 % Fieldtrip path
-params.fieldtrip_path = 'C:\Users\Mitarbeiter\fieldtrip';
+params.fieldtrip_path = '/rechenmagd4/toolboxes_and_functions/fieldtrip';
 
 % Brain Connectivity Toolbox path
-params.bct_path = 'C:\Users\Mitarbeiter\2019_03_03_BCT';
+params.bct_path = '/rechenmagd4/toolboxes_and_functions/2019_03_03_BCT';
 
 % Add the toolboxes and pipeline functions to matlab path (do not need to be modified by the user)
 run(fullfile(params.eeglab_path,'eeglab.m'));
@@ -67,10 +59,7 @@ end
 % you can define here your own electrode template (e.g. point to the '*_electrodes.tsv', but make sure that 
 % it is properly aligned with the head model.
 params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
-<<<<<<< HEAD
-
-=======
->>>>>>> eb8daaa6d2040e5dac1245259d8fea1c6392c02f
+% params.elec_template = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini/sub-CBPpa02/eeg/sub-CBPpa02_electrodes.tsv';
 
 % ===== Bad channel rejection =====
 % Parameters for the bad channel rejection (Default values as in clean_rawdata())
@@ -119,16 +108,16 @@ params.epoch_overlap = 0.5; % In percentage
 % Frequency resolution (default 1/epoch_length, i.e. 0.1 Hz)
 params.freq_res = 1/params.epoch_length; % In Herz
 % Type of taper for computing the power spectrum (default 'dpss')
-params.taper = 'dpss';
+params.taper = 'hanning';
 % Frequency smoothing of the power spectrum (default 1)
 params.tapsmofrq = 1;
 
-% Frequency bands of interest (default values for theta, alpha, beta as in
-% Pernet et al 2021. For gamma [60 100] to avoid 50 Hz line noise)
+% Frequency bands of interest (default values for theta, alpha, beta and gamma as in
+% Pernet et al 2021
 params.freq_band.theta = [4 8-params.freq_res];
 params.freq_band.alpha = [8 13-params.freq_res]; 
 params.freq_band.beta  = [13 30];
-params.freq_band.gamma = [60 100];             
+params.freq_band.gamma = [30+params.freq_res 80];             
 
 % ==== Source reconstruction =====
 % Head model (default 'standard_bem.mat')

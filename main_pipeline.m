@@ -66,98 +66,97 @@ EEG = ALLEEG;
 CURRENTSET = 1:length(EEG);
 
 %% ======== PREPROCESSING =========
-
-% 1. REMOVE BAD CHANNELS
-[EEG.urchanlocs] = deal(EEG.chanlocs); % Keep original channels
-EEG = pop_clean_rawdata(EEG,'FlatlineCriterion', params.FlatlineCriterion,...
-                            'ChannelCriterion',params.ChannelCriterion,...
-                            'LineNoiseCriterion',params.LineNoiseCriterion,...
-                            'Highpass',params.Highpass,...
-                            'FuseChanRej',params.FuseChanRej,... 
-                            'BurstCriterion','off',...
-                            'WindowCriterion','off',...
-                            'BurstRejection','off',...
-                            'Distance','Euclidian',...
-                            'WindowCriterionTolerances','off');
-% Visualization of detected bad channels. If you set 'FuseChanRej' on, the union of
-% bad channels in all tasks is rejected!
-plot_badchannels(params,EEG);
-
-% 2. REREFERENCE TO AVERAGE REFERENCE
-if strcmp(params.addRefChannel,'on')
-    EEG = pop_reref(EEG,[],'interpchan',[],'refloc', EEG(1).chaninfo.nodatchans);
-else
-    EEG = pop_reref(EEG,[],'interpchan',[]);
-end
-
-% 3. REMOVE ARTIFACTS WITH ICA
-EEG = pop_runica(EEG,'icatype','runica','concatcond','off');
-EEG = pop_iclabel(EEG,'default');
-EEG = pop_icflag(EEG, params.IClabel); % flag artifactual components using IClabel
-classifications = cellfun(@(x) x.ic_classification.ICLabel.classifications, {EEG.etc},'UniformOutput', false); % Keep classifications before component substraction
-EEG = pop_subcomp(EEG,[],0); % Substract artifactual independent components
+tic
 for iRec=1:length(EEG)
-    EEG(iRec).etc.ic_classification.ICLabel.orig_classifications = classifications{iRec};
-end
-% Visualization of rejected ICs
-plot_ICs(params,EEG);
+    % Retrieve data
+    EEGtemp = eeg_checkset(EEG(iRec),'loaddata');
+    
+    % 1. CLEAN LINE NOISE
+    EEGtemp = pop_cleanline(EEGtemp,'linefreqs',50,'newversion',1);
+    
+      
+    % 2. REMOVE BAD CHANNELS
+    [EEGtemp.urchanlocs] = deal(EEGtemp.chanlocs); % Keep original channels
+    EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion', params.FlatlineCriterion,...
+                                'ChannelCriterion',params.ChannelCriterion,...
+                                'LineNoiseCriterion',params.LineNoiseCriterion,...
+                                'Highpass',params.Highpass,...
+                                'FuseChanRej',params.FuseChanRej,... 
+                                'BurstCriterion','off',...
+                                'WindowCriterion','off',...
+                                'BurstRejection','off',...
+                                'Distance','Euclidian',...
+                                'WindowCriterionTolerances','off');
+                            
+    % 3. REREFERENCE TO AVERAGE REFERENCE
+    if strcmp(params.addRefChannel,'on')
+        EEGtemp = pop_reref(EEGtemp,[],'interpchan',[],'refloc', EEG(1).chaninfo.nodatchans);
+    else
+        EEGtemp = pop_reref(EEGtemp,[],'interpchan',[]);
+    end
 
-% 4. INTERPOLATE MISSING CHANNELS
-for iRec=1:size(EEG,2)
-    EEGtemp = eeg_checkset(EEG(iRec),'loaddata'); % Retrieve data
+    % 4. REMOVE ARTIFACTS WITH ICA
+    EEGtemp = pop_runica(EEGtemp,'icatype','runica','concatcond','off');
+    EEGtemp = pop_iclabel(EEGtemp,'default');
+    EEGtemp = pop_icflag(EEGtemp, params.IClabel); % flag artifactual components using IClabel
+    classifications = EEGtemp.etc.ic_classification.ICLabel.classifications; % Keep classifications before component substraction
+    EEGtemp = pop_subcomp(EEGtemp,[],0); % Substract artifactual independent components
+    EEGtemp.etc.ic_classification.ICLabel.orig_classifications = classifications;
+
+
+    % 5. INTERPOLATE MISSING CHANNELS
     urchanlocs = EEGtemp.urchanlocs;
     [~, iref] = setdiff({EEGtemp.chanlocs.labels},{EEGtemp.urchanlocs.labels}); % Handle reference in case it was added back
     if ~isempty(iref)
         urchanlocs(end+1) = EEGtemp.chanlocs(iref);
     end
     EEGtemp = pop_interp(EEGtemp, urchanlocs, 'spherical');
-    EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
-    EEGtemp.data = 'in set file'; % clear data from memory
-    EEG = eeg_store(EEG, EEGtemp, iRec);
-end
+    
 
-% 5. REMOVE BAD TIME SEGMENTS
-EEG = pop_clean_rawdata(EEG,'FlatlineCriterion','off',...
-                            'ChannelCriterion','off',...
-                            'LineNoiseCriterion','off',...
-                            'Highpass','off',...
-                            'BurstCriterion',params.BurstCriterion,...
-                            'WindowCriterion',params.WindowCriterion,...
-                            'BurstRejection','on',...
-                            'Distance','Euclidian',...
-                            'WindowCriterionTolerances',params.WindowCriterionTolerances);
-for iRec=1:length(EEG)
-    EEG(iRec).etc.eventsAfterCRD = EEG(iRec).event; % Keep events for visualization later on.
-end
-% Visualization of rejected time segments
-plot_badtimesegments(params,EEG);
+    % 6. REMOVE BAD TIME SEGMENTS
+    EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion','off',...
+                                'ChannelCriterion','off',...
+                                'LineNoiseCriterion','off',...
+                                'Highpass','off',...
+                                'BurstCriterion',params.BurstCriterion,...
+                                'WindowCriterion',params.WindowCriterion,...
+                                'BurstRejection','on',...
+                                'Distance','Euclidian',...
+                                'WindowCriterionTolerances',params.WindowCriterionTolerances);
+    EEGtemp.etc.eventsAfterCRD = EEGtemp.event; % Keep events for visualization later on.
 
-% 6. SEGMENT DATA INTO EPOCHS
-% EEGLab pop_epoch is designed to trim the data based on events. For
-% resting-state data, in which no events are defined, this function is
-% tricky to use. I added markers called 'epoch_start' each 10*(1-0.5) = 5 seconds with a duration of 1 sample.
-% Note: Epochs containing discontinutities will be automatically rejected.
-for iRec=1:size(EEG,2)
+    
+    % 7. SEGMENT DATA INTO EPOCHS
+    % EEGLab pop_epoch is designed to trim the data based on events. For
+    % resting-state data, in which no events are defined, this function is
+    % tricky to use. I added markers called 'epoch_start' each 10*(1-0.5) = 5 seconds with a duration of 1 sample.
+    % Note: Epochs containing discontinutities will be automatically rejected.
     % Create markers each x seconds and add them at the end of existing event markers
-    epoch_start = 1 : EEG(iRec).srate * params.epoch_length * (1-params.epoch_overlap) : EEG(iRec).pnts;
+    epoch_start = 1 : EEGtemp.srate * params.epoch_length * (1-params.epoch_overlap) : EEGtemp.pnts;
     nEpochs = length(epoch_start);
-    if ~isempty(EEG(iRec).event)
-        events = EEG(iRec).event;
-        n = length(events);        
-        [events(n+1:n+nEpochs).type] = deal('epoch_start');  
+    if ~isempty(EEGtemp.event)
+        events = EEGtemp.event;
+        n = length(events);
+        [events(n+1:n+nEpochs).type] = deal('epoch_start');
         latency = num2cell([[events.latency],epoch_start]);
         [events.latency] = latency{:};
         [events(n+1:n+nEpochs).duration] = deal(1);
         
     else % Deal with the case in which no bad time segments were detected
         events = struct('type',repmat({'epoch_start'},1,nEpochs),...
-                        'latency',num2cell(epoch_start),...
-                        'duration',num2cell(ones(1,nEpochs)));
+            'latency',num2cell(epoch_start),...
+            'duration',num2cell(ones(1,nEpochs)));
     end
-
-    EEG(iRec).event = events;
+    EEGtemp.event = events;
+    EEGtemp = pop_epoch(EEGtemp,{'epoch_start'},[0 params.epoch_length],'epochinfo','yes');
+    
+    
+    % Save datafile, clear it from memory and store it in the ALLEEG structure
+    EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
+    EEGtemp.data = 'in set file';
+    EEG = eeg_store(EEG, EEGtemp, iRec);
 end
-EEG = pop_epoch(EEG,{'epoch_start'},[0 params.epoch_length],'epochinfo','yes');
+
 
 % Save study
 EEG = eeg_checkset(EEG);
@@ -165,14 +164,23 @@ EEG = pop_saveset(EEG,'savemode','resave');
 ALLEEG = EEG;
 STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.study '_preprocessed'], 'filepath', params.preprocessed_data_path);
 
+% PLOTTING PREPROCESSING
+% Visualization of detected bad channels. If you set 'FuseChanRej' on, the union of bad channels in all tasks is rejected!
+plot_badchannels(params,EEG);
+% Visualization of rejected ICs
+plot_ICs(params,EEG);
+% Visualization of rejected time segments
+plot_badtimesegments(params,EEG);
+
 clear EEG ALLEEG;
+params.preptime = toc;
 
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-params = define_params();
-cd(params.main_folder)
-[STUDY, ~] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
+% params = define_params();
+% cd(params.main_folder)
+% [STUDY, ~] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
 
 % % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
 % % electrodes are aligned with the head model)
@@ -181,7 +189,7 @@ cd(params.main_folder)
 % % OPTIONAL -  Visualization of atlas regions by network
 % plot_atlasregions(params);
 
-
+tic
 for iRec=1:length(STUDY.datasetinfo)
     
     % BIDS ID
@@ -249,6 +257,7 @@ for iRec=1:length(STUDY.datasetinfo)
     % Generate individual recording reports with figures
     recording_report(params,bidsID)    
 end
+params.feattime = toc;
 end
 
 
