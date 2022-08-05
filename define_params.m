@@ -5,15 +5,15 @@ function params = define_params()
 %% DATA AND TOOLBOXES PATHS (TO BE MODIFIED BY USER)
 
 % The name of your study
-params.study = 'FM-mini';
+params.study = 'rawBIDS';
 
 % The path of your raw data in BIDS format
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/FM-mini';
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/rawBIDS';
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
 t = datestr(now,'yyyy_mm_dd');
-params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' t]);
+params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_' t]);
 
 % Parameter to select a specific task. If you want to look at a specific task, specify its name as in the BIDS
 % standard (e.g. 'closed', 'open'). By default all tasks are processed ([])
