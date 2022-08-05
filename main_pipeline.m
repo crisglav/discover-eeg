@@ -178,9 +178,9 @@ params.preptime = toc;
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-% params = define_params();
-% cd(params.main_folder)
-% [STUDY, ~] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
+params = define_params();
+cd(params.main_folder)
+[STUDY, ~] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
 
 % % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
 % % electrodes are aligned with the head model)
@@ -216,7 +216,7 @@ for iRec=1:length(STUDY.datasetinfo)
         
         % 4.A FUNCTIONAL CONNECTIVITY - dwPLI
         if ~exist(fullfile(params.connectivity_folder,[bidsID '_dwpli_' iFreq{:} '.mat']),'file')
-            compute_dwpli_felix(params,bidsID,iFreq{:});
+            compute_dwpli(params,bidsID,iFreq{:});
         end
         
         % 4.B FUNCTIONAL CONNECTIVITY - AEC
