@@ -10,44 +10,40 @@ data = ft_preprocessing(cfg, data);
 
 % Load source reconstruction data
 load(fullfile(params.source_folder,[bidsID '_source_' freqBand '.mat']),'source');
-nVoxel = sum(source.inside);
 
 % Reconstruct the virtual time series (apply spatial filter to sensor level
 % data)
 cfg  = [];
 cfg.pos = source.pos(source.inside,:);
 virtChan_data = ft_virtualchannel(cfg,data,source);
+clear data source;
 
 % Frequencies of interest
 fois = params.freq_band.(freqBand)(1):params.freq_res_connectivity:params.freq_band.(freqBand)(2);
 
-% prealocate connectivity matrix
-connMatrix = zeros(nVoxel, nVoxel, length(fois));
-
 tic
-for idx=1:length(fois)
-    % Fourier components
-    cfg = [];
-    cfg.method = 'mtmfft';
-    cfg.taper = 'dpss';
-    cfg.output = 'fourier';
-    cfg.keeptrials = 'yes';
-    cfg.pad = 'nextpow2';
-    cfg.foi = fois(idx);
-    cfg.tapsmofrq = 1;
-    virtFreq = ft_freqanalysis(cfg, virtChan_data);
+% Fourier components
+cfg = [];
+cfg.method = 'mtmfft';
+cfg.taper = 'dpss';
+cfg.output = 'fourier';
+cfg.keeptrials = 'yes';
+cfg.pad = 'nextpow2';
+cfg.foi = fois;
+cfg.tapsmofrq = 1;
+virtFreq = ft_freqanalysis(cfg, virtChan_data);
+clear virtChan_data;
 
-    % Connectivity
-    cfg = [];
-    cfg.method = 'wpli_debiased';
-    source_conn = ft_connectivityanalysis(cfg, virtFreq);
-    connMatrix(:,:,idx) = source_conn.(['wpli_debiased','spctrm']);
-end
+% Connectivity
+cfg = [];
+cfg.method = 'wpli_debiased';
+source_conn = ft_connectivityanalysis(cfg, virtFreq);
+clear virtFreq;
+
+% Average across frequency bins
+connMatrix = mean(abs(source_conn.wpli_debiasedspctrm),3);
+
 t = toc;
-
-connMatrix = mean(abs(connMatrix), 3);
-[nRows, nCols] = size(connMatrix);
-connMatrix(1:nRows+1:nRows*nCols) = nan;
 disp([bidsID '_', freqBand, ' computation took ', num2str(t/60), ' minutes'])
 
 save(fullfile(params.connectivity_folder,[bidsID '_dwpli_' freqBand '.mat']),'connMatrix')

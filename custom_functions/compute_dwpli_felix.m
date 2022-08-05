@@ -1,7 +1,11 @@
 function compute_dwpli_felix(params,bidsID,freqBand)
 % Instead of computing one connectivity matrix per frequency bin, obtain
-% the fourier time series with multitapering with a high frequency
-% resolution and obtain the connectivity matrix at that freq.
+% the fourier time series with multitapering with at the middle frequency
+% point of the band with a smoothing equal to half of the band range.
+% Comment: it makes connectiviy values higher than the other method and
+% some values present a bias towards negative values, therefore there are
+% negative values in the connectivity matrix.
+% Cristina Gil and Felix Bott, 05.08.2022, TUM
 
 % Load EEG data
 data = load_preprocessed_data(params,bidsID);
@@ -14,7 +18,6 @@ data = ft_preprocessing(cfg, data);
 
 % Load source reconstruction data
 load(fullfile(params.source_folder,[bidsID '_source_' freqBand '.mat']),'source');
-nVoxel = sum(source.inside);
 
 % Reconstruct the virtual time series (apply spatial filter to sensor level
 % data)
