@@ -1,9 +1,13 @@
 function data = load_preprocessed_data(params,bidsID)
     
     % Load data
-    x = strsplit(bidsID,'_');
-    x = x(1:end-1);
-    datapath = fullfile(params.preprocessed_data_path,x{:},'eeg',[bidsID '_eeg.set']);
+    if contains(bidsID,'_')
+        x = strsplit(bidsID,'_');
+        x = x{1};
+    else
+        x = bidsID;
+    end
+    datapath = fullfile(params.preprocessed_data_path,x,'eeg',[bidsID '_eeg.set']);
     
     hdr = ft_read_header(datapath); % all the bids information is contained in the header of the original file
     cfg = [];
@@ -12,7 +16,7 @@ function data = load_preprocessed_data(params,bidsID)
     
     % Using electrode positions from electrodes.tsv
     if strcmp(params.bidschanloc,'on')
-          % Coordinates taken from the .set file -> not aligned with mni template 
+          % Coordinates taken from the .set file are not aligned with mni template!! 
 %         % Coordinate system of eelgab has to be defined manually
 %         data.elec.coordsys = 'ctf';
 %         data.elec = ft_convert_units(data.elec, 'mm');
@@ -96,15 +100,6 @@ function data = load_preprocessed_data(params,bidsID)
         elec.unit = elec_template.unit;
         
     end
-
-%     % Overlay electrode positions
-%     load(params.volpath,'vol');
-%     figure;
-%     ft_plot_headmodel(vol,'facealpha',0.1,'facecolor',[0.1 0.1 0.1],'edgecolor',[1 1 1],'edgealpha',0.5);
-%     hold on;
-%     ft_plot_sens(elec,'label','number','elec','true','elecshape','disc','elecsize',5,'facecolor','r');
-%     view(90,0);
-    
     
     if isequal(data.label,elec.label)
         data.elec = elec;
@@ -112,9 +107,4 @@ function data = load_preprocessed_data(params,bidsID)
         warning('data.label is not equal to elec.label')
     end
     
-%     % Patch to select only EEG electrodes (in case you have specified in
-%     % the electrodes.tsv type 'EEG' in electrodes that were not EEG)
-%     cfg = [];
-%     cfg.channel = data.elec.label;
-%     data = ft_selectdata(cfg,data);
 end
