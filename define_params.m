@@ -5,19 +5,19 @@ function params = define_params()
 %% DATA AND TOOLBOXES PATHS (TO BE MODIFIED BY USER)
 
 % The name of your study
-params.study = 'rawBIDS';
+params.study = 'LEMON';
 
 % The path of your raw data in BIDS format
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/rawBIDS';
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-bids';
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
 t = datestr(now,'yyyy_mm_dd');
-params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_' t]);
+params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' t]);
 
 % Parameter to select a specific task. If you want to look at a specific task, specify its name as in the BIDS
 % standard (e.g. 'closed', 'open'). By default all tasks are processed ([])
-params.task =  'closed';
+params.task =  [];
 
 % EEGLab path
 params.eeglab_path = '/rechenmagd4/toolboxes_and_functions/eeglab';
@@ -58,7 +58,7 @@ end
 % standard BEM head model. If you have additional non-standard electrodes (e.g. LE and RE)
 % you can define here your own electrode template (e.g. point to the '*_electrodes.tsv', but make sure that 
 % it is properly aligned with the head model.
-params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
+% params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
 % params.elec_template = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini/sub-CBPpa02/eeg/sub-CBPpa02_electrodes.tsv';
 
 % ===== Bad channel rejection =====
@@ -108,7 +108,7 @@ params.epoch_overlap = 0.5; % In percentage
 % Frequency resolution (default 1/epoch_length, i.e. 0.1 Hz)
 params.freq_res = 1/params.epoch_length; % In Herz
 % Type of taper for computing the power spectrum (default 'dpss')
-params.taper = 'hanning';
+params.taper = 'dpss';
 % Frequency smoothing of the power spectrum (default 1)
 params.tapsmofrq = 1;
 

@@ -50,6 +50,13 @@ for iRec=1:length(ALLEEG)
     EEGtemp = pop_select(EEGtemp, 'channel', eegchans);
     EEGtemp.chaninfo.removedchans = [];
     
+    % OPTIONAL. Extract a segment of the data
+    % E.g. Extract 1st minute of eyes closed data (From first S210 marker to last S210 marker of the first block)
+    s210 = strcmp({EEGtemp.event.type},'S210');
+    start_point = EEGtemp.event(find(s210,1)).latency;
+    end_point = EEGtemp.event(find(diff(s210)==-1,1)).latency;
+    EEGtemp = pop_select(EEGtemp, 'point', [start_point end_point]); 
+    
     % Save datafile, clear it from memory and store it in the ALLEEG structure
     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
     EEGtemp.data = 'in set file';
@@ -58,7 +65,6 @@ end
 
 % % OPTIONAL - Check that the electrodes positions are ok
 % figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo',ALLEEG(1).chaninfo);
-% hold on,
 % figure; topoplot([],ALLEEG(1).chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
 
 CURRENTSTUDY = 1;
@@ -71,10 +77,16 @@ for iRec=1:length(EEG)
     % Retrieve data
     EEGtemp = eeg_checkset(EEG(iRec),'loaddata');
     
-    % 1. CLEAN LINE NOISE
-    EEGtemp = pop_cleanline(EEGtemp,'linefreqs',50,'newversion',1);
+    % OPTIONAL. DOWNSAMPLE DATA
+    EEGtemp = pop_resample(EEGtemp, 250);
     
-      
+    % 1. CLEAN LINE NOISE
+    try
+        EEGtemp = pop_cleanline(EEGtemp,'linefreqs',EEGtemp.BIDS.tInfo.PowerLineFrequency,'newversion',1);
+    catch
+        warning('CleanLine not performed. Make sure you specify the Line Noise Frequency in the *_eeg.json file')
+    end
+    
     % 2. REMOVE BAD CHANNELS
     [EEGtemp.urchanlocs] = deal(EEGtemp.chanlocs); % Keep original channels
     EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion', params.FlatlineCriterion,...
@@ -178,13 +190,13 @@ params.preptime = toc;
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-params = define_params();
-cd(params.main_folder)
-[STUDY, ~] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
+% params = define_params();
+% cd(params.main_folder)
+% [STUDY, ~] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
 
 % % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
 % % electrodes are aligned with the head model)
-% plot_electrodesandsources(params,'sub-01_task-closed')
+% plot_electrodesandsources(params,'sub-010002')
 % 
 % % OPTIONAL -  Visualization of atlas regions by network
 % plot_atlasregions(params);
