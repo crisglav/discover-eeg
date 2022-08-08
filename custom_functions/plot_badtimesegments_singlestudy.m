@@ -1,8 +1,13 @@
 function [bs_plot, bs_length, recording_length] = plot_badtimesegments_singlestudy(params,bidsID)
-x = strsplit(bidsID,'_');
-x = x(1:end-1);
-datapath = fullfile(params.preprocessed_data_path,x{:},'eeg',[bidsID '_eeg.set']);
+if contains(bidsID,'_')
+    x = strsplit(bidsID,'_');
+    x = x{1};
+else
+    x = bidsID;
+end
+datapath = fullfile(params.preprocessed_data_path,x,'eeg',[bidsID '_eeg.set']);
 
+% Read header file
 hdr = ft_read_header(datapath);
 etc = hdr.orig.etc;
 events = etc.eventsAfterCRD;
