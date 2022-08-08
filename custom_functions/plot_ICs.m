@@ -62,7 +62,7 @@ s_ids = join(s_ids,'_',2);
 s_ids = insertBefore(s_ids,'_','\'); % Escape the underscores
 
 % Create stacked bar plot
-f = figure('Position',[1988 548 781 781]);
+f = figure('Position',[1988 548 781 781], 'visible', 'off');
 h = bar(ics,'stacked','EdgeColor','none');
 for k = 1:length(c), h(k).FaceColor = c(k,:); end
 set(gca,'xticklabel',s_ids,'xticklabelrotation',45);

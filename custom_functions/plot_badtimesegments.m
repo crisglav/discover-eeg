@@ -26,7 +26,7 @@ end
 srates = cell2mat({EEG.srate})';
 segs = segs./(srates*60); % Divide by sampling rate
 
-f = figure('Position',[1988 548 781 781]);
+f = figure('Position',[1988 548 781 781], 'visible', 'off');
 h = bar(segs,'stacked','EdgeColor','none');
 set(h,'FaceColor','Flat');
 

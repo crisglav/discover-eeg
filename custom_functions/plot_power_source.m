@@ -2,7 +2,7 @@ function fig = plot_power_source(params,bidsID)
 
 freqNames = fields(params.freq_band)';    
 
-fig = figure('Position',[412 412 1200 1200]);
+fig = figure('Position',[412 412 1200 1200], 'visible', 'off');
 tcl = tiledlayout(2,2);
 
 % Load surface structure

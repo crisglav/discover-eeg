@@ -16,7 +16,7 @@ for i=1:length(networks)
 end
 newpos = vertcat(pos{:});
 
-conn_fig = figure('Position',[412 412 1200 1200]);
+conn_fig = figure('Position',[412 412 1200 1200], 'visible', 'off');
 tcl = tiledlayout(2,2);
 for iFreq=1:length(freqNames)
     

@@ -10,7 +10,7 @@ badrecs = double(~cat(2,tmp{:})); % error here when you have datasets with diffe
 badchans = zeros(nChans,nRec);
 badchans(:,recmask) = badrecs;
 
-f = figure('Position',[1988 548 781 781]);
+f = figure('Position',[1988 548 781 781], 'visible', 'off');
 
 % Recording ids
 s_ids = cellfun(@(x) regexp(x,'.*(?=_eeg.set)','match','lineanchors'),{EEG.filename});

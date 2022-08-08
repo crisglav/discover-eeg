@@ -4,8 +4,8 @@ freqNames = fields(params.freq_band)';
 graphMeas = {'gcc','geff','smallworldness'};
 spider = nan(length(freqNames),length(graphMeas));
 
-f_degree = figure('Position',[412 412 1200 1200]);
-f_cc = figure('Position',[412 412 1200 1200]);
+f_degree = figure('Position',[412 412 1200 1200], 'visible', 'off');
+f_cc = figure('Position',[412 412 1200 1200], 'visible', 'off');
 t_degree = tiledlayout(f_degree,2,2);
 t_cc = tiledlayout(f_cc,2,2);
 
@@ -57,7 +57,7 @@ title(t_degree,{[connMeasure ' - Degree'],bidsID},'Interpreter','None');
 title(t_cc,{[connMeasure ' - Clustering coef.'],bidsID},'Interpreter','None');
 
 % Spider plot with global measures
-f_global = figure('Position', [1988, 672, 780, 657]);
+f_global = figure('Position', [1988, 672, 780, 657], 'visible', 'off');
 axeslim = [0, 0, min(spider(:,3)); 1, 1, max(spider(:,3))];
 spider_plot(spider,...
     'AxesLabels', {'Global clustering coef.','Global efficiency','Smallworldness'}, ...

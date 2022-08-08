@@ -11,7 +11,7 @@ freqRange = find(power.freq >= params.freq_band.alpha(1) & power.freq <= params.
 
 % Plotting peak frequency
 
-pf_fig = figure('Position',[1988 548 781 781]);
+pf_fig = figure('Position',[1988 548 781 781], 'visible', 'off');
 findpeaks(avgpow(freqRange),power.freq(freqRange),'SortStr','descend','NPeaks',1);
 hold on
 plot(peakfrequency.cog,interp1(power.freq(freqRange),avgpow(freqRange),peakfrequency.cog),'v','MarkerEdgeColor','#D95319','MarkerFaceColor','#D95319');
