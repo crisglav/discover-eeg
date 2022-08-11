@@ -5,10 +5,10 @@ function params = define_params()
 %% DATA AND TOOLBOXES PATHS (TO BE MODIFIED BY USER)
 
 % The name of your study
-params.study = 'LEMON';
+params.study = 'LEMON-1min';
 
 % The path of your raw data in BIDS format
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-bids';
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-mini-1min-bids';
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
@@ -60,6 +60,11 @@ end
 % it is properly aligned with the head model.
 % params.elec_template = fullfile(params.fieldtrip_path,'template','electrode','standard_1005.elc');
 % params.elec_template = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini/sub-CBPpa02/eeg/sub-CBPpa02_electrodes.tsv';
+
+% ===== Downsampling ======
+% In case you want to downsample the data, the new sampling date in Hz
+% default ([])
+params.sampling_rate = 250;
 
 % ===== Bad channel rejection =====
 % Parameters for the bad channel rejection (Default values as in clean_rawdata())

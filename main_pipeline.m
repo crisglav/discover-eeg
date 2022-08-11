@@ -13,8 +13,9 @@ save(fullfile(params.preprocessed_data_path,'pipeline_params.mat'),'params');
 
 %% ======= IMPORT RAW DATA =========
 % Import raw data in BIDS format
-[STUDY, ALLEEG, bids] = pop_importbids(params.raw_data_path,'outputdir',params.preprocessed_data_path,...
+[STUDY, ALLEEG] = pop_importbids(params.raw_data_path,'outputdir',params.preprocessed_data_path,...
     'studyName',params.study,'bidstask',params.task,'bidschanloc',params.bidschanloc,'bidsevent','off');
+
 
 for iRec=1:length(ALLEEG)
     % Retrieve data
@@ -22,11 +23,11 @@ for iRec=1:length(ALLEEG)
     
     % Add reference electrode
     EEGtemp = pop_chanedit(EEGtemp, 'append',EEGtemp.nbchan, ...
-        'changefield', {EEGtemp.nbchan+1,'labels',bids.data(iRec).EEGReference},...
+        'changefield', {EEGtemp.nbchan+1,'labels',ALLEEG(iRec).BIDS.tInfo.EEGReference},...
         'changefield', {EEGtemp.nbchan+1, 'X', params.RefCoord.X}, ...
         'changefield', {EEGtemp.nbchan+1, 'Y', params.RefCoord.Y}, ...
         'changefield', {EEGtemp.nbchan+1, 'Z', params.RefCoord.Z},...
-        'setref',{['1:' num2str(EEGtemp.nbchan)],bids.data(iRec).EEGReference});
+        'setref',{['1:' num2str(EEGtemp.nbchan)],ALLEEG(iRec).BIDS.tInfo.EEGReference});
     
     % Use electrode positions from the electrodes.tsv file or from a standard template in the MNI coordinate system
     if strcmp(params.bidschanloc, 'on')
@@ -50,35 +51,33 @@ for iRec=1:length(ALLEEG)
     EEGtemp = pop_select(EEGtemp, 'channel', eegchans);
     EEGtemp.chaninfo.removedchans = [];
     
-    % OPTIONAL. Extract a segment of the data
-    % E.g. Extract 1st minute of eyes closed data (From first S210 marker to last S210 marker of the first block)
-    s210 = strcmp({EEGtemp.event.type},'S210');
-    start_point = EEGtemp.event(find(s210,1)).latency;
-    end_point = EEGtemp.event(find(diff(s210)==-1,1)).latency;
-    EEGtemp = pop_select(EEGtemp, 'point', [start_point end_point]); 
-    
     % Save datafile, clear it from memory and store it in the ALLEEG structure
     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
     EEGtemp.data = 'in set file';
     ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
-end  
+end
+
+ALLEEG = eeg_checkset(ALLEEG);
+ALLEEG = pop_saveset(ALLEEG,'savemode','resave');
+STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.study '-1min'], 'filepath', params.preprocessed_data_path);
 
 % % OPTIONAL - Check that the electrodes positions are ok
 % figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo',ALLEEG(1).chaninfo);
 % figure; topoplot([],ALLEEG(1).chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
 
-CURRENTSTUDY = 1;
-EEG = ALLEEG;
-CURRENTSET = 1:length(EEG);
+% CURRENTSTUDY = 1;
+% EEG = ALLEEG;
+% CURRENTSET = 1:length(EEG);
 
 %% ======== PREPROCESSING =========
 tic
-for iRec=1:length(EEG)
+for iRec=1:length(ALLEEG)
+
     % Retrieve data
-    EEGtemp = eeg_checkset(EEG(iRec),'loaddata');
+    EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata');
     
     % OPTIONAL. DOWNSAMPLE DATA
-    EEGtemp = pop_resample(EEGtemp, 250);
+    EEGtemp = pop_resample(EEGtemp, params.sampling_rate);
     
     % 1. CLEAN LINE NOISE
     try
@@ -102,7 +101,7 @@ for iRec=1:length(EEG)
                             
     % 3. REREFERENCE TO AVERAGE REFERENCE
     if strcmp(params.addRefChannel,'on')
-        EEGtemp = pop_reref(EEGtemp,[],'interpchan',[],'refloc', EEG(1).chaninfo.nodatchans);
+        EEGtemp = pop_reref(EEGtemp,[],'interpchan',[],'refloc', ALLEEG(iRec).chaninfo.nodatchans);
     else
         EEGtemp = pop_reref(EEGtemp,[],'interpchan',[]);
     end
@@ -166,23 +165,23 @@ for iRec=1:length(EEG)
     % Save datafile, clear it from memory and store it in the ALLEEG structure
     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
     EEGtemp.data = 'in set file';
-    EEG = eeg_store(EEG, EEGtemp, iRec);
+    ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
+    
 end
 
 
 % Save study
-EEG = eeg_checkset(EEG);
-EEG = pop_saveset(EEG,'savemode','resave');
-ALLEEG = EEG;
+ALLEEG = eeg_checkset(ALLEEG);
+ALLEEG = pop_saveset(ALLEEG,'savemode','resave');
 STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.study '_preprocessed'], 'filepath', params.preprocessed_data_path);
 
 % PLOTTING PREPROCESSING
 % Visualization of detected bad channels. If you set 'FuseChanRej' on, the union of bad channels in all tasks is rejected!
-plot_badchannels(params,EEG);
+plot_badchannels(params,ALLEEG);
 % Visualization of rejected ICs
-plot_ICs(params,EEG);
+plot_ICs(params,ALLEEG);
 % Visualization of rejected time segments
-plot_badtimesegments(params,EEG);
+plot_badtimesegments(params,ALLEEG);
 
 clear EEG ALLEEG;
 params.preptime = toc;
