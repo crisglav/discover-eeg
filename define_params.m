@@ -8,7 +8,7 @@ function params = define_params()
 params.study = 'LEMON-1min';
 
 % The path of your raw data in BIDS format
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-mini-1min-bids';
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-1min-bids';
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.

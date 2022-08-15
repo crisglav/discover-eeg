@@ -55,22 +55,18 @@ for iRec=1:length(ALLEEG)
     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
     EEGtemp.data = 'in set file';
     ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
-end
+    STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.study, 'filepath', params.preprocessed_data_path);
 
-ALLEEG = eeg_checkset(ALLEEG);
-ALLEEG = pop_saveset(ALLEEG,'savemode','resave');
-STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.study '-1min'], 'filepath', params.preprocessed_data_path);
+end
 
 % % OPTIONAL - Check that the electrodes positions are ok
 % figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo',ALLEEG(1).chaninfo);
 % figure; topoplot([],ALLEEG(1).chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
 
-% CURRENTSTUDY = 1;
-% EEG = ALLEEG;
-% CURRENTSET = 1:length(EEG);
-
+parpool('local');
 %% ======== PREPROCESSING =========
 tic
+to_delete = {};
 for iRec=1:length(ALLEEG)
 
     % Retrieve data
@@ -82,8 +78,8 @@ for iRec=1:length(ALLEEG)
     % 1. CLEAN LINE NOISE
     try
         EEGtemp = pop_cleanline(EEGtemp,'linefreqs',EEGtemp.BIDS.tInfo.PowerLineFrequency,'newversion',1);
-    catch
-        warning('CleanLine not performed. Make sure you specify the Line Noise Frequency in the *_eeg.json file')
+    catch ME
+        warning(['CleanLine not performed: ' ME.message ' Make sure you specify the Line Noise Frequency in the *_eeg.json file'])
     end
     
     % 2. REMOVE BAD CHANNELS
@@ -98,7 +94,10 @@ for iRec=1:length(ALLEEG)
                                 'BurstRejection','off',...
                                 'Distance','Euclidian',...
                                 'WindowCriterionTolerances','off');
-                            
+    if(isfield(EEGtemp.etc,'clean_channel_mask'))
+        clean_channel_mask = EEGtemp.etc.clean_channel_mask;
+    end
+    
     % 3. REREFERENCE TO AVERAGE REFERENCE
     if strcmp(params.addRefChannel,'on')
         EEGtemp = pop_reref(EEGtemp,[],'interpchan',[],'refloc', ALLEEG(iRec).chaninfo.nodatchans);
@@ -143,6 +142,7 @@ for iRec=1:length(ALLEEG)
     % tricky to use. I added markers called 'epoch_start' each 10*(1-0.5) = 5 seconds with a duration of 1 sample.
     % Note: Epochs containing discontinutities will be automatically rejected.
     % Create markers each x seconds and add them at the end of existing event markers
+    try
     epoch_start = 1 : EEGtemp.srate * params.epoch_length * (1-params.epoch_overlap) : EEGtemp.pnts;
     nEpochs = length(epoch_start);
     if ~isempty(EEGtemp.event)
@@ -160,20 +160,33 @@ for iRec=1:length(ALLEEG)
     end
     EEGtemp.event = events;
     EEGtemp = pop_epoch(EEGtemp,{'epoch_start'},[0 params.epoch_length],'epochinfo','yes');
-    
+    if EEGtemp.trial == 0, to_delete{end +1} = EEGtemp.filename; end
+    catch ME
+        warning(['Data segmentation not performed: ' ME.message ' Probably no clean epoch remained. Recording will be removed.'])
+        to_delete{end +1} = EEGtemp.filename;
+%         continue;
+    end
     
     % Save datafile, clear it from memory and store it in the ALLEEG structure
+    if exist('clean_channel_mask','var'), EEGtemp.etc.clean_channel_mask = clean_channel_mask; end; clear 'clean_channel_mask';
     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
     EEGtemp.data = 'in set file';
     ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
+    STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.study, 'filepath', params.preprocessed_data_path);
+
     
 end
+preptime = toc;
 
-
+% Delete recordings
+for iRec = 1:length(to_delete)
+    mask = strcmp({ALLEEG.filename},to_delete{iRec});
+    ALLEEG(mask) = [];
+    STUDY.datasetinfo(mask) = [];
+    STUDY.subject(mask) = [];
+end
 % Save study
-ALLEEG = eeg_checkset(ALLEEG);
-ALLEEG = pop_saveset(ALLEEG,'savemode','resave');
-STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.study '_preprocessed'], 'filepath', params.preprocessed_data_path);
+STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.study '-clean'], 'filepath', params.preprocessed_data_path);
 
 % PLOTTING PREPROCESSING
 % Visualization of detected bad channels. If you set 'FuseChanRej' on, the union of bad channels in all tasks is rejected!
@@ -183,15 +196,14 @@ plot_ICs(params,ALLEEG);
 % Visualization of rejected time segments
 plot_badtimesegments(params,ALLEEG);
 
-clear EEG ALLEEG;
-params.preptime = toc;
+clear EEGtemp ALLEEG;
 
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
 % params = define_params();
 % cd(params.main_folder)
-% [STUDY, ~] = pop_loadstudy('filename', [params.study '_preprocessed.study'], 'filepath', params.preprocessed_data_path);
+% [STUDY, ~] = pop_loadstudy('filename', [params.study '-clean.study'], 'filepath', params.preprocessed_data_path);
 
 % % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
 % % electrodes are aligned with the head model)
@@ -268,7 +280,7 @@ for iRec=1:length(STUDY.datasetinfo)
     % Generate individual recording reports with figures
     recording_report(params,bidsID)    
 end
-params.feattime = toc;
+feattime = toc;
 end
 
 
