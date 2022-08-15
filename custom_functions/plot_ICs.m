@@ -1,12 +1,15 @@
 function plot_ICs(params,EEG)
 
 etc = {EEG.etc};
-nChans = length(EEG(1).urchanlocs);
+if range([EEG.nbchan]) ~= 0 % Check that all recordings have the same number of channels
+    error('Different number of total channels in at least one recording')
+end
+nChans = EEG(1).nbchan;
 nRec = length(EEG);
 
-% Bad channels
 recmask = cellfun(@(x) isfield(x, 'clean_channel_mask'), etc); % Deal with the case where no bad channels were detected
 tmp = cellfun(@(x) x.clean_channel_mask, etc(recmask),'uni',0);
+tmp = cellfun(@(x) x(:), tmp, 'UniformOutput', false); % force to be a column vector
 badrecs = double(~cat(2,tmp{:}));
 badchans = zeros(nChans,nRec);
 badchans(:,recmask) = badrecs;
@@ -62,15 +65,18 @@ s_ids = join(s_ids,'_',2);
 s_ids = insertBefore(s_ids,'_','\'); % Escape the underscores
 
 % Create stacked bar plot
-f = figure('Position',[1988 548 781 781], 'visible', 'off');
+f = figure('units','normalized','outerposition',[0 0 1 1]);
 h = bar(ics,'stacked','EdgeColor','none');
 for k = 1:length(c), h(k).FaceColor = c(k,:); end
-set(gca,'xticklabel',s_ids,'xticklabelrotation',45);
-% xlabel('Recording ID');
+xticks(1:2:nRec);
+box off;
+set(gca,'xticklabel',s_ids(1:2:nRec),'xticklabelrotation',45);
+xlabel('Recording ID');
 ylabel('Independent components');
 legend(l,'Location','southeast');
 title('IC classification');
 saveas(f,fullfile(params.figures_preprocessing_folder, 'ICA.svg'),'svg');
+savefig(f,fullfile(params.figures_preprocessing_folder, 'ICA.fig'));
 
 end
 

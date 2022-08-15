@@ -1,16 +1,20 @@
 function plot_badchannels(params,EEG)
 
 etc = {EEG.etc};
-nChans = length(EEG(1).urchanlocs);
+if range([EEG.nbchan]) ~= 0 % Check that all recordings have the same number of channels
+    error('Different number of total channels in at least one recording')
+end
+nChans = EEG(1).nbchan;
 nRec = length(EEG);
 
 recmask = cellfun(@(x) isfield(x, 'clean_channel_mask'), etc); % Deal with the case where no bad channels were detected
 tmp = cellfun(@(x) x.clean_channel_mask, etc(recmask),'uni',0);
-badrecs = double(~cat(2,tmp{:})); % error here when you have datasets with different number of electrodes
+tmp = cellfun(@(x) x(:), tmp, 'UniformOutput', false); % force to be a column vector
+badrecs = double(~cat(2,tmp{:}));
 badchans = zeros(nChans,nRec);
 badchans(:,recmask) = badrecs;
 
-f = figure('Position',[1988 548 781 781], 'visible', 'off');
+f = figure('units','normalized','outerposition',[0 0 1 1]);
 
 % Recording ids
 s_ids = cellfun(@(x) regexp(x,'.*(?=_eeg.set)','match','lineanchors'),{EEG.filename});
@@ -41,6 +45,7 @@ h.Title = 'Bad channels';
 % h.XLabel = 'Recording ID';
 h.YLabel = 'Channels';
 saveas(f,fullfile(params.figures_preprocessing_folder, 'badchans.svg'),'svg');
+savefig(f,fullfile(params.figures_preprocessing_folder, 'badchans.fig'));
 
 end
 

@@ -18,7 +18,7 @@ sourcemodel_atlas.coordsys = 'mni';
 load(params.volpath,'vol');
 
 % Plotting
-f = figure;
+f = figure('Position',[651 613 972 684]);
 ft_plot_headmodel(vol,'facealpha',0.1,'facecolor',[0.1 0.1 0.1],'edgecolor',[1 1 1],'edgealpha',0.5);
 hold on;
 ft_plot_mesh(sourcemodel_atlas.pos, 'vertexsize',10, 'vertexcolor','b');

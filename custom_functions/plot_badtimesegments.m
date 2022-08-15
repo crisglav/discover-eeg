@@ -26,7 +26,7 @@ end
 srates = cell2mat({EEG.srate})';
 segs = segs./(srates*60); % Divide by sampling rate
 
-f = figure('Position',[1988 548 781 781], 'visible', 'off');
+f = figure('units','normalized','outerposition',[0 0 1 1]);
 h = bar(segs,'stacked','EdgeColor','none');
 set(h,'FaceColor','Flat');
 
@@ -58,12 +58,15 @@ s_ids = splitted_ids(:,find(mask));
 s_ids = join(s_ids,'_',2);
 s_ids = insertBefore(s_ids,'_','\'); % Escape the underscores
 
-set(gca,'xticklabel',s_ids,'xticklabelrotation',45)
-% xlabel('Recording ID');
+xticks(1:2:nRec);
+box off;
+set(gca,'xticklabel',s_ids(1:2:nRec),'xticklabelrotation',45)
+xlabel('Recording ID');
 ylabel('Length of the recording (minutes)');
 legend({'Good','Bad'},'Location','southeast');
 title('Segmentation of the data after bad segment removal');
 saveas(f,fullfile(params.figures_preprocessing_folder, 'BadSegments.svg'),'svg');
+savefig(f,fullfile(params.figures_preprocessing_folder, 'BadSegments.fig'));
 
 end
 
