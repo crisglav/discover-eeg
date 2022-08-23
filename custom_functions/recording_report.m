@@ -118,5 +118,5 @@ add(sec52,Figure(global_plot));
 append(rpt,ch2);
 
 close(rpt);
-rptview(rpt);
+% rptview(rpt);
 end

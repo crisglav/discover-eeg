@@ -4,7 +4,7 @@ etc = {EEG.etc};
 if range([EEG.nbchan]) ~= 0 % Check that all recordings have the same number of channels
     error('Different number of total channels in at least one recording')
 end
-nChans = EEG(1).nbchan;
+nChans = lengt(EEG(1).urchanlocs);
 nRec = length(EEG);
 
 recmask = cellfun(@(x) isfield(x, 'clean_channel_mask'), etc); % Deal with the case where no bad channels were detected
@@ -46,6 +46,6 @@ h.Title = 'Bad channels';
 h.YLabel = 'Channels';
 saveas(f,fullfile(params.figures_preprocessing_folder, 'badchans.svg'),'svg');
 savefig(f,fullfile(params.figures_preprocessing_folder, 'badchans.fig'));
-
+save(fullfile(params.figures_preprocessing_folder, 'badchans.mat'),'badchans','s_ids','chanlabels');
 end
 

@@ -23,7 +23,7 @@ s = s(2:end)-s(1:end-1);
 segs(1,1:length(s)) = s;
 segs = segs./(hdr.orig.srate*60); % Divide by sampling rate
 
-bs_plot = figure('Position',[1988 548 1500 300]);
+bs_plot = figure('Position',[1988 548 1500 300],'visible','off');
 b = barh(1, segs(1,:),'stacked','EdgeColor','none');
 set(b,'FaceColor','Flat');
 for k = 1:find((segs(1,:)~=0),1,'last')

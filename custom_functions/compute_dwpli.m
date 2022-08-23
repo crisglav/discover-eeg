@@ -42,7 +42,9 @@ clear virtFreq;
 
 % Average across frequency bins
 connMatrix = mean(abs(source_conn.wpli_debiasedspctrm),3);
-
+if all(all(isnan(connMatrix)))
+    error('Connectivity matrix only contains NaN');
+end
 t = toc;
 disp([bidsID '_', freqBand, ' computation took ', num2str(t/60), ' minutes'])
 

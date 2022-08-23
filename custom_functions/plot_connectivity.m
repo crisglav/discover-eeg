@@ -19,9 +19,12 @@ newpos = vertcat(pos{:});
 conn_fig = figure('Position',[412 412 1200 1200], 'visible', 'off');
 tcl = tiledlayout(2,2);
 for iFreq=1:length(freqNames)
-    
-    % Load connectivity matrices
-    load(fullfile(params.connectivity_folder,[bidsID '_' connMeasure '_' freqNames{iFreq} '.mat']),'connMatrix');
+    try
+        % Load connectivity matrices
+        load(fullfile(params.connectivity_folder,[bidsID '_' connMeasure '_' freqNames{iFreq} '.mat']),'connMatrix');
+    catch
+        error('Connectivity matrix could not be loaded');
+    end
     % Reshape connectivity matrices to match the atlas networks
     connMatrix_r = connMatrix(newpos,newpos);
 %     clim = max(abs(max(max(connMatrix_r))),abs(min(min(connMatrix_r))));

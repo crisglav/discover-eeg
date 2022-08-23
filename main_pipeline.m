@@ -239,8 +239,14 @@ for iRec=1:length(STUDY.datasetinfo)
         
         % 4.A FUNCTIONAL CONNECTIVITY - dwPLI
         if ~exist(fullfile(params.connectivity_folder,[bidsID '_dwpli_' iFreq{:} '.mat']),'file')
-            compute_dwpli(params,bidsID,iFreq{:});
+            try
+                compute_dwpli(params,bidsID,iFreq{:});
+            catch ME
+                warning([bidsID ' - ' ME.message]);
+                continue;
+            end
         end
+
         
         % 4.B FUNCTIONAL CONNECTIVITY - AEC
         if ~exist(fullfile(params.connectivity_folder,[bidsID '_aec_' iFreq{:} '.mat']),'file')
@@ -249,8 +255,13 @@ for iRec=1:length(STUDY.datasetinfo)
         
         % 5. NETWORK CHARACTERIZATION (GRAPH MEASURES)
         if ~exist(fullfile(params.graph_folder,[bidsID '_graph_dwpli_' iFreq{:} '.mat']),'file')
-            compute_graph_measures(params,bidsID,iFreq{:},'dwpli');
-        end        
+            try
+                compute_graph_measures(params,bidsID,iFreq{:},'dwpli');
+            catch ME
+                warning([bidsID ' - ' ME.message]);
+                continue;
+            end
+        end
         if ~exist(fullfile(params.graph_folder,[bidsID '_graph_aec_' iFreq{:} '.mat']),'file')
             compute_graph_measures(params,bidsID,iFreq{:},'aec');
         end
@@ -259,26 +270,51 @@ for iRec=1:length(STUDY.datasetinfo)
     
     % PLOTTING
     % Plot source power in all frequency bands
-    fig = plot_power_source(params,bidsID);
-    saveas(fig,fullfile(params.source_folder,[bidsID '_source.svg']));
-    close(fig);
-    
-    for iConMeas = {'dwpli','aec'}     
-        % Plot connectivity matrices in all frequency bands and save them in connectivity folder
-        fig = plot_connectivity(params,bidsID,iConMeas{:});
-        saveas(fig,fullfile(params.connectivity_folder,[bidsID '_' iConMeas{:} '.svg']));
+    if ~exist(fullfile(params.source_folder,[bidsID '_source.svg']),'file')
+        fig = plot_power_source(params,bidsID);
+        saveas(fig,fullfile(params.source_folder,[bidsID '_source.svg']));
         close(fig);
+    end
+    
+    for iConMeas = {'dwpli','aec'}
+        % Plot connectivity matrices in all frequency bands and save them in connectivity folder
+        if ~exist(fullfile(params.connectivity_folder,[bidsID '_' iConMeas{:} '.svg']),'file')
+            try
+                fig = plot_connectivity(params,bidsID,iConMeas{:});
+                saveas(fig,fullfile(params.connectivity_folder,[bidsID '_' iConMeas{:} '.svg']));
+                close(fig);
+            catch ME
+                warning([bidsID ' - ' ME.message]);
+            end
+        end
+
         
         % Plot graph measures in all frequency bands and save them in the graph measures folder
-        [f_degree, f_cc, f_global] = plot_graph_measures(params,bidsID,iConMeas{:});
-        saveas(f_degree,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_degree.svg']));
-        saveas(f_cc,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_cc.svg']));
-        saveas(f_global,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_global.svg']));
-        close(f_degree, f_cc, f_global);   
+        if ~exist(fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_degree.svg']),'file') ||...
+                ~exist(fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_cc.svg']),'file') ||...
+                ~exist(fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_global.svg']),'file')
+            try
+                [f_degree, f_cc, f_global] = plot_graph_measures(params,bidsID,iConMeas{:});
+                saveas(f_degree,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_degree.svg']));
+                saveas(f_cc,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_cc.svg']));
+                saveas(f_global,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_global.svg']));
+                close(f_degree, f_cc, f_global);
+            catch ME
+                warning([bidsID ' - ' ME.message]);
+            end
+                
+        end
     end
     
     % Generate individual recording reports with figures
-    recording_report(params,bidsID)    
+    if ~exist(fullfile(params.reports_folder,[bidsID '_report.pdf']),'file')
+        try
+            recording_report(params,bidsID);
+        catch ME
+            warning([bidsID ' - ' ME.message]);
+        end
+        
+    end
 end
 feattime = toc;
 end
