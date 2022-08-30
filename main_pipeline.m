@@ -63,7 +63,7 @@ end
 % figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo',ALLEEG(1).chaninfo);
 % figure; topoplot([],ALLEEG(1).chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
 
-parpool('local');
+% parpool('local');
 %% ======== PREPROCESSING =========
 tic
 to_delete = {};
@@ -110,7 +110,7 @@ for iRec=1:length(ALLEEG)
     EEGtemp = pop_iclabel(EEGtemp,'default');
     EEGtemp = pop_icflag(EEGtemp, params.IClabel); % flag artifactual components using IClabel
     classifications = EEGtemp.etc.ic_classification.ICLabel.classifications; % Keep classifications before component substraction
-    EEGtemp = pop_subcomp(EEGtemp,[],0); % Substract artifactual independent components
+    EEGtemp = pop_subcomp(EEGtemp,[],0); % Subtract artifactual independent components
     EEGtemp.etc.ic_classification.ICLabel.orig_classifications = classifications;
 
 

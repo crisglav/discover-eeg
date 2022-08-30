@@ -8,12 +8,12 @@ function params = define_params()
 params.study = 'LEMON-1min';
 
 % The path of your raw data in BIDS format
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-1min-bids';
+params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/CBP-mini';
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
-% t = datestr(now,'yyyy_mm_dd');
-t = '2022_08_12';
+t = datestr(now,'yyyy_mm_dd');
+% t = '2022_08_12';
 params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' t]);
 
 % Parameter to select a specific task. If you want to look at a specific task, specify its name as in the BIDS
