@@ -27,7 +27,7 @@ srates = cell2mat({EEG.srate})';
 segs = segs./(srates*60); % Divide by sampling rate
 
 f = figure('units','normalized','outerposition',[0 0 1 1]);
-h = bar(segs,'stacked','EdgeColor','none');
+h = bar(1:size(segs,1), segs,'stacked','EdgeColor','none');
 set(h,'FaceColor','Flat');
 
 for iSubj=1:nRec
@@ -50,7 +50,7 @@ splitted_ids = cellfun(@(x) strsplit(x,'_'),s_ids,'UniformOutput',false);
 splitted_ids = vertcat(splitted_ids{:});
 mask = ones(1,size(splitted_ids,2));
 for i=1:size(splitted_ids,2)
-    if numel(unique(splitted_ids(:,i)))==1
+    if (numel(unique(splitted_ids(:,i)))==1 && size(splitted_ids,1)>1)
         mask(i)=0;
     end
 end

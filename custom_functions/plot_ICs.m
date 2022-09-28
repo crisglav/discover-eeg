@@ -4,7 +4,7 @@ etc = {EEG.etc};
 if range([EEG.nbchan]) ~= 0 % Check that all recordings have the same number of channels
     error('Different number of total channels in at least one recording')
 end
-nChans = lengt(EEG(1).urchanlocs);
+nChans = length(EEG(1).urchanlocs);
 nRec = length(EEG);
 
 recmask = cellfun(@(x) isfield(x, 'clean_channel_mask'), etc); % Deal with the case where no bad channels were detected
@@ -56,7 +56,7 @@ splitted_ids = cellfun(@(x) strsplit(x,'_'),s_ids,'UniformOutput',false);
 splitted_ids = vertcat(splitted_ids{:});
 mask = ones(1,size(splitted_ids,2));
 for i=1:size(splitted_ids,2)
-    if numel(unique(splitted_ids(:,i)))==1
+    if (numel(unique(splitted_ids(:,i)))==1 && size(splitted_ids,1)>1)
         mask(i)=0;
     end
 end
@@ -66,7 +66,7 @@ s_ids = insertBefore(s_ids,'_','\'); % Escape the underscores
 
 % Create stacked bar plot
 f = figure('units','normalized','outerposition',[0 0 1 1]);
-h = bar(ics,'stacked','EdgeColor','none');
+h = bar(1:size(ics,1), ics,'stacked','EdgeColor','none');
 for k = 1:length(c), h(k).FaceColor = c(k,:); end
 xticks(1:2:nRec);
 box off;
