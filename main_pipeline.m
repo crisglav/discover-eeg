@@ -124,6 +124,7 @@ for iRec=1:length(ALLEEG)
     
 
     % 6. REMOVE BAD TIME SEGMENTS
+    EEGtempOld = EEGtemp;
     EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion','off',...
                                 'ChannelCriterion','off',...
                                 'LineNoiseCriterion','off',...
@@ -134,7 +135,7 @@ for iRec=1:length(ALLEEG)
                                 'Distance','Euclidian',...
                                 'WindowCriterionTolerances',params.WindowCriterionTolerances);
     EEGtemp.etc.eventsAfterCRD = EEGtemp.event; % Keep events for visualization later on.
-
+%     EEGtemp0 = EEGtemp;
     
     % 7. SEGMENT DATA INTO EPOCHS
     % EEGLab pop_epoch is designed to trim the data based on events. For
@@ -143,29 +144,36 @@ for iRec=1:length(ALLEEG)
     % Note: Epochs containing discontinutities will be automatically rejected.
     % Create markers each x seconds and add them at the end of existing event markers
     try
-    epoch_start = 1 : EEGtemp.srate * params.epoch_length * (1-params.epoch_overlap) : EEGtemp.pnts;
-    nEpochs = length(epoch_start);
-    if ~isempty(EEGtemp.event)
-        events = EEGtemp.event;
-        n = length(events);
-        [events(n+1:n+nEpochs).type] = deal('epoch_start');
-        latency = num2cell([[events.latency],epoch_start]);
-        [events.latency] = latency{:};
-        [events(n+1:n+nEpochs).duration] = deal(1);
-        
-    else % Deal with the case in which no bad time segments were detected
-        events = struct('type',repmat({'epoch_start'},1,nEpochs),...
-            'latency',num2cell(epoch_start),...
-            'duration',num2cell(ones(1,nEpochs)));
-    end
-    EEGtemp.event = events;
-    EEGtemp = pop_epoch(EEGtemp,{'epoch_start'},[0 params.epoch_length],'epochinfo','yes');
-    if EEGtemp.trial == 0, to_delete{end +1} = EEGtemp.filename; end
+        % Create spatially distributed markers
+        EEGtemp = eeg_regepochs(EEGtemp,'recurrence',params.epoch_length * (1-params.epoch_overlap),'eventtype','epoch_start','extractepochs','off');
+        % Segment the data into epochs
+        EEGtemp = pop_epoch(EEGtemp,{'epoch_start'},[0 params.epoch_length],'epochinfo','yes'); % epoch latencies are lost in this step
+        % Mark recordings without any trial left to remove later on
+        if EEGtemp.trials == 0, to_delete{end +1} = EEGtemp.filename; end
     catch ME
         warning(['Data segmentation not performed: ' ME.message ' Probably no clean epoch remained. Recording will be removed.'])
         to_delete{end +1} = EEGtemp.filename;
-%         continue;
     end
+    
+%     %%%%%%%%%%%%%%%% TEMPORARY PLOT SEGMENTS %%%%%%%%%%%%%%%%%%%%
+%     subLen = 14501;
+%     selChan = 1;
+%     figure;
+%     plot(EEGtempOld.data(selChan,1:subLen), 'b');
+%     hold on
+%     plot(find(~EEGtemp0.etc.clean_sample_mask),EEGtempOld.data(selChan,~EEGtemp0.etc.clean_sample_mask),'m');
+%    
+%     for iEp =1:size(EEGtemp.data,3)
+%         datEp = squeeze(EEGtemp.data(selChan,:, iEp));
+%         for i = 1:(size(EEGtempOld.data,2)-1250)
+%             ccMat = corrcoef(datEp', squeeze(EEGtempOld.data(selChan,i:i+1249))');
+%             corrVal(i) = ccMat(1,2);
+%         end
+%         [~, iMax] =max(corrVal);
+%         lat(iEp) = iMax;
+%         plot(iMax:iMax+1249, datEp+50+5*iEp)
+%     end  
+%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
     
     % Save datafile, clear it from memory and store it in the ALLEEG structure
     if exist('clean_channel_mask','var'), EEGtemp.etc.clean_channel_mask = clean_channel_mask; end; clear 'clean_channel_mask';
@@ -174,7 +182,6 @@ for iRec=1:length(ALLEEG)
     ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
     STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.study, 'filepath', params.preprocessed_data_path);
 
-    
 end
 preptime = toc;
 
@@ -201,10 +208,10 @@ clear EEGtemp ALLEEG;
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-% params = define_params();
-% cd(params.main_folder)
-% [STUDY, ~] = pop_loadstudy('filename', [params.study '-clean.study'], 'filepath', params.preprocessed_data_path);
-
+params = define_params();
+cd(params.main_folder)
+[STUDY, ~] = pop_loadstudy('filename', [params.study '-clean.study'], 'filepath', params.preprocessed_data_path);
+%%
 % % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
 % % electrodes are aligned with the head model)
 % plot_electrodesandsources(params,'sub-010002')
@@ -212,7 +219,6 @@ clear EEGtemp ALLEEG;
 % % OPTIONAL -  Visualization of atlas regions by network
 % plot_atlasregions(params);
 
-tic
 for iRec=1:length(STUDY.datasetinfo)
     
     % BIDS ID
@@ -316,7 +322,6 @@ for iRec=1:length(STUDY.datasetinfo)
         
     end
 end
-feattime = toc;
 end
 
 
