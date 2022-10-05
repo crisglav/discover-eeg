@@ -65,7 +65,6 @@ end
 
 % parpool('local');
 %% ======== PREPROCESSING =========
-tic
 to_delete = {};
 for iRec=1:length(ALLEEG)
 
@@ -104,76 +103,120 @@ for iRec=1:length(ALLEEG)
     else
         EEGtemp = pop_reref(EEGtemp,[],'interpchan',[]);
     end
-
-    % 4. REMOVE ARTIFACTS WITH ICA
-    EEGtemp = pop_runica(EEGtemp,'icatype','runica','concatcond','off');
-    EEGtemp = pop_iclabel(EEGtemp,'default');
-    EEGtemp = pop_icflag(EEGtemp, params.IClabel); % flag artifactual components using IClabel
-    classifications = EEGtemp.etc.ic_classification.ICLabel.classifications; % Keep classifications before component substraction
-    EEGtemp = pop_subcomp(EEGtemp,[],0); % Subtract artifactual independent components
-    EEGtemp.etc.ic_classification.ICLabel.orig_classifications = classifications;
-
-
-    % 5. INTERPOLATE MISSING CHANNELS
-    urchanlocs = EEGtemp.urchanlocs;
-    [~, iref] = setdiff({EEGtemp.chanlocs.labels},{EEGtemp.urchanlocs.labels}); % Handle reference in case it was added back
-    if ~isempty(iref)
-        urchanlocs(end+1) = EEGtemp.chanlocs(iref);
+    
+    % ICA is non-deterministic and several runs of the algorithm lead to
+    % small differences in the bad segment detection. We permorn 10 times
+    % the ICA, interpolation of bad channels and bad segment detection and 
+    % we select the run that is closer to the 'average' bad segment mask
+    % removal'.
+    % that
+    EEGOrig = EEGtemp;
+    nRep = 10;
+    EEGtemp_dirty = cell(1,nRep);
+    EEGtemp_clean = cell(1,nRep);
+    EEGtemp_epoched = cell(1,nRep);
+    for iRep =1:nRep
+        EEGtemp = EEGOrig;
+        % 4. REMOVE ARTIFACTS WITH ICA
+        EEGtemp = pop_runica(EEGtemp,'icatype','runica','concatcond','off');
+        EEGtemp = pop_iclabel(EEGtemp,'default');
+        EEGtemp = pop_icflag(EEGtemp, params.IClabel); % flag artifactual components using IClabel
+        classifications = EEGtemp.etc.ic_classification.ICLabel.classifications; % Keep classifications before component substraction
+        EEGtemp = pop_subcomp(EEGtemp,[],0); % Subtract artifactual independent components
+        EEGtemp.etc.ic_classification.ICLabel.orig_classifications = classifications;
+        
+        % 5. INTERPOLATE MISSING CHANNELS
+        urchanlocs = EEGtemp.urchanlocs;
+        [~, iref] = setdiff({EEGtemp.chanlocs.labels},{EEGtemp.urchanlocs.labels}); % Handle reference in case it was added back
+        if ~isempty(iref)
+            urchanlocs(end+1) = EEGtemp.chanlocs(iref);
+        end
+        EEGtemp = pop_interp(EEGtemp, urchanlocs, 'spherical');
+        
+        
+        % 6. REMOVE BAD TIME SEGMENTS
+        EEGtemp_dirty{iRep} = EEGtemp;
+        EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion','off',...
+            'ChannelCriterion','off',...
+            'LineNoiseCriterion','off',...
+            'Highpass','off',...
+            'BurstCriterion',params.BurstCriterion,...
+            'WindowCriterion',params.WindowCriterion,...
+            'BurstRejection','on',...
+            'Distance','Euclidian',...
+            'WindowCriterionTolerances',params.WindowCriterionTolerances);
+        EEGtemp.etc.eventsAfterCRD = EEGtemp.event; % Keep events for visualization later on.       
+        EEGtemp_clean{iRep} = EEGtemp;
     end
-    EEGtemp = pop_interp(EEGtemp, urchanlocs, 'spherical');
+        
+    % Identify the run closer to the 'average' bad time segments mask
+    etc = cellfun(@(x) x.etc, EEGtemp_clean, 'UniformOutput',0);
+    csm = cell2mat(cellfun(@(x) x.clean_sample_mask, etc, 'UniformOutput',0)');
+    csmAverage = mean(csm,1);
+    distToAvg = sum(abs(csm - csmAverage), 2);
+    [~,selRun] = min(distToAvg);
+%     EEGtemp = EEGtemp_clean{selRun};    
     
-
-    % 6. REMOVE BAD TIME SEGMENTS
-    EEGtempOld = EEGtemp;
-    EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion','off',...
-                                'ChannelCriterion','off',...
-                                'LineNoiseCriterion','off',...
-                                'Highpass','off',...
-                                'BurstCriterion',params.BurstCriterion,...
-                                'WindowCriterion',params.WindowCriterion,...
-                                'BurstRejection','on',...
-                                'Distance','Euclidian',...
-                                'WindowCriterionTolerances',params.WindowCriterionTolerances);
-    EEGtemp.etc.eventsAfterCRD = EEGtemp.event; % Keep events for visualization later on.
-%     EEGtemp0 = EEGtemp;
+    for iRep = 1:nRep     % This loop is just for visualization
+        EEGtemp = EEGtemp_clean{iRep};
+        % 7. SEGMENT DATA INTO EPOCHS
+        % EEGLab pop_epoch is designed to trim the data based on events. For
+        % resting-state data, in which no events are defined, this function is
+        % tricky to use. I added markers called 'epoch_start' each 10*(1-0.5) = 5 seconds with a duration of 1 sample.
+        % Note: Epochs containing discontinutities will be automatically rejected.
+        % Create markers each x seconds and add them at the end of existing event markers
+        try
+            % Create spatially distributed markers
+            EEGtemp = eeg_regepochs(EEGtemp,'recurrence',params.epoch_length * (1-params.epoch_overlap),'eventtype','epoch_start','extractepochs','off');
+            % Segment the data into epochs
+            EEGtemp = pop_epoch(EEGtemp,{'epoch_start'},[0 params.epoch_length],'epochinfo','yes'); % epoch latencies are lost in this step
+            % Mark recordings without any trial left to remove later on
+            if EEGtemp.trials == 0, to_delete{end +1} = EEGtemp.filename; end
+            EEGtemp_epoched{iRep} = EEGtemp;
+        catch ME
+            warning(['Data segmentation not performed: ' ME.message ' Probably no clean epoch remained. Recording will be removed.'])
+            to_delete{end +1} = EEGtemp.filename;
+        end
+    end  
     
-    % 7. SEGMENT DATA INTO EPOCHS
-    % EEGLab pop_epoch is designed to trim the data based on events. For
-    % resting-state data, in which no events are defined, this function is
-    % tricky to use. I added markers called 'epoch_start' each 10*(1-0.5) = 5 seconds with a duration of 1 sample.
-    % Note: Epochs containing discontinutities will be automatically rejected.
-    % Create markers each x seconds and add them at the end of existing event markers
-    try
-        % Create spatially distributed markers
-        EEGtemp = eeg_regepochs(EEGtemp,'recurrence',params.epoch_length * (1-params.epoch_overlap),'eventtype','epoch_start','extractepochs','off');
-        % Segment the data into epochs
-        EEGtemp = pop_epoch(EEGtemp,{'epoch_start'},[0 params.epoch_length],'epochinfo','yes'); % epoch latencies are lost in this step
-        % Mark recordings without any trial left to remove later on
-        if EEGtemp.trials == 0, to_delete{end +1} = EEGtemp.filename; end
-    catch ME
-        warning(['Data segmentation not performed: ' ME.message ' Probably no clean epoch remained. Recording will be removed.'])
-        to_delete{end +1} = EEGtemp.filename;
+    %%%%%%%%%%%%%%%% TEMPORARY PLOT SEGMENTS %%%%%%%%%%%%%%%%%%%%
+    rep = selRun;
+    sLength = size(EEGtemp.times,2);
+    srate = EEGtemp.srate;
+    selChan = 1;
+    figure;
+    % Plot channel data with overlayed bad segments in magenta and green
+    % vertical lines indicating the starting of a new block
+    plot(EEGtemp_dirty{rep}.times,EEGtemp_dirty{rep}.data(1,:), 'b');
+    s210 = contains({EEGtemp_dirty{rep}.event.code},'S210');
+    latencies210 = [EEGtemp_dirty{rep}.event(s210).latency];
+    for iEv = 1:sum(s210)
+        hold on
+        xline(latencies210(iEv)/srate,'g');
     end
+    hold on
+    clean_mask = EEGtemp_clean{rep}.etc.clean_sample_mask;
+    plot(EEGtemp_dirty{rep}.times(~clean_mask),EEGtemp_dirty{rep}.data(1,~clean_mask),'m');
     
-%     %%%%%%%%%%%%%%%% TEMPORARY PLOT SEGMENTS %%%%%%%%%%%%%%%%%%%%
-%     subLen = 14501;
-%     selChan = 1;
-%     figure;
-%     plot(EEGtempOld.data(selChan,1:subLen), 'b');
-%     hold on
-%     plot(find(~EEGtemp0.etc.clean_sample_mask),EEGtempOld.data(selChan,~EEGtemp0.etc.clean_sample_mask),'m');
-%    
-%     for iEp =1:size(EEGtemp.data,3)
-%         datEp = squeeze(EEGtemp.data(selChan,:, iEp));
-%         for i = 1:(size(EEGtempOld.data,2)-1250)
-%             ccMat = corrcoef(datEp', squeeze(EEGtempOld.data(selChan,i:i+1249))');
-%             corrVal(i) = ccMat(1,2);
-%         end
-%         [~, iMax] =max(corrVal);
-%         lat(iEp) = iMax;
-%         plot(iMax:iMax+1249, datEp+50+5*iEp)
-%     end  
-%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+    % Plot obtained epochs over the channel data
+    lat = zeros(1,EEGtemp_epoched{rep}.trials);
+    for iEp =1:EEGtemp_epoched{rep}.trials
+        disp(iEp);
+        datEp = squeeze(EEGtemp_epoched{rep}.data(selChan,:, iEp));
+        tic
+        for i = 1:(size(EEGtemp_dirty{rep}.data,2)-sLength)
+            ccMat = corrcoef(datEp', squeeze(EEGtemp_dirty{rep}.data(selChan,i:i+sLength-1))');
+            corrVal(i) = ccMat(1,2);
+        end
+        toc
+        [~, iMax] =max(corrVal);
+        lat(iEp) = iMax;
+        plot(EEGtemp_dirty{rep}.times(iMax:iMax+sLength-1), datEp+20+2*iEp)
+            
+    end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+%     Nepochs{iRep} = EEGtemp.trials;
+    trials = cellfun(@(x) x.trials, EEGtemp_epoched,'UniformOutput',0);
     
     % Save datafile, clear it from memory and store it in the ALLEEG structure
     if exist('clean_channel_mask','var'), EEGtemp.etc.clean_channel_mask = clean_channel_mask; end; clear 'clean_channel_mask';
@@ -183,7 +226,6 @@ for iRec=1:length(ALLEEG)
     STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.study, 'filepath', params.preprocessed_data_path);
 
 end
-preptime = toc;
 
 % Delete recordings
 for iRec = 1:length(to_delete)
