@@ -3,7 +3,6 @@ function plot_badtimesegments(params,EEG)
 etc = {EEG.etc};
 events = {EEG.event};
 nRec = length(EEG);
-nTrials = [EEG.trials];
 % Lengths of each recording
 lengths = cell2mat(cellfun(@(x) length(x.clean_sample_mask), etc, 'UniformOutput',0)); 
 
@@ -67,7 +66,7 @@ legend({'Good','Bad'},'Location','southeast');
 title('Segmentation of the data after bad segment removal');
 saveas(f,fullfile(params.figures_preprocessing_folder, 'BadSegments.svg'),'svg');
 savefig(f,fullfile(params.figures_preprocessing_folder, 'BadSegments.fig'));
-save(fullfile(params.figures_preprocessing_folder, 'BadSegments.mat'),'segs','s_ids','nTrials');
+save(fullfile(params.figures_preprocessing_folder, 'BadSegments.mat'),'segs','s_ids');
 
 end
 
