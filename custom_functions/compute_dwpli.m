@@ -1,6 +1,7 @@
 function compute_dwpli(params,bidsID,freqBand)
-% Load EEG data
+% Load EEG data and check that there are more than 10 epochs
 data = load_preprocessed_data(params,bidsID);
+assert(size(data.trial,2)>=10, 'Recording with less than 10 epochs');
 
 % Band-pass filter the data in the relevant frequency band
 cfg = [];

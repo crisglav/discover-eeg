@@ -3,7 +3,7 @@
 %   input:  - virtChan_timeSeries: cell array of EEG time series, each cell
 %           should represent a single epoch/trial
 %   output: - connMatrix: s x s x e matrix, containing the connectivity
-%           matrices for every single epoch/trial. s = number of sources, t = number of epochs
+%           matrices for every single epoch/trial. s = number of sources, e = number of epochs
 % 
 % Cristina Gil and Stefan Dvoretskii, Technical University of Munich 20.04.2022
 % based on brainstorm AEC connectivity
@@ -14,7 +14,7 @@ function connMatrix = aecConnectivity_brainstorm(virtChan_timeSeries)
     for iTrial = 1:nTrial
         tic;
         % Estimate envelope of the signals with Hilbert transform
-        HA = hilbert(virtChan_timeSeries.trial{iTrial}.').';
+        HA = hilbert(virtChan_timeSeries.trial{iTrial}')';
         R = zeros(nVoxel, nVoxel);
         for iSeed = 1:nVoxel
             % Orthogonalize all the signals w.r.t. the seed
