@@ -36,7 +36,7 @@ s_ids = insertBefore(s_ids,'_','\'); % Escape the underscores
 chanlabels = {EEG(1).urchanlocs.labels};
 
 % colormap
-cmap = [1 1 1; lines(1)];
+cmap = [1 1 1; 1 0 0];
 if all(all(badchans == 0)), cmap = [1 1 1]; end
 
 % Plot the heatmap

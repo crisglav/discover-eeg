@@ -22,7 +22,7 @@ end
 chanlabels = {hdr.orig.urchanlocs.labels};
 
 % colormap
-cmap = [1 1 1; lines(1)];
+cmap = [1 1 1; 1 0 0];
 if all(all(badchans == 0)), cmap = [1 1 1]; end
 
 % Plot the heatmap
