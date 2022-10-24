@@ -9,42 +9,49 @@ f_cc = figure('Position',[412 412 1200 1200], 'visible', 'off');
 t_degree = tiledlayout(f_degree,2,2);
 t_cc = tiledlayout(f_cc,2,2);
 
-% Load dummy source structure for plotting
-load(fullfile(params.source_folder,[bidsID '_source_' freqNames{1} '.mat']),'source');
-
 % Load surface structure
 surf = ft_read_headshape('surface_white_both.mat');
+
+% Load atlas positions
+atlas400 = readtable(params.atlaspath);
+% Source model: centroid positons from Schaefer atlas
+cfg = [];
+cfg.method = 'basedonpos';
+cfg.sourcemodel.pos = [atlas400.R, atlas400.A, atlas400.S];
+cfg.unit = 'mm';
+sourcemodel_atlas = ft_prepare_sourcemodel(cfg);
+sourcemodel_atlas.coordsys = 'mni';
+
 for iFreq=1:length(freqNames)
     
     % Load graph measures
     load(fullfile(params.graph_folder,[bidsID '_graph_' connMeasure '_' freqNames{iFreq} '.mat']),'graph_measures');
-        
-    % Copy the pow structure and update with cc and degree
-    source.avg.degree = graph_measures.degree;
-    source.avg.cc = graph_measures.cc;
-
-    % Interpolate local graph measures to the surface cortex
-    cfg = [];
-    cfg.method = 'nearest';
-    cfg.parameter = {'degree','cc'};
-    sourceInterp = ft_sourceinterpolate(cfg, source, surf);
-       
-    % Plot the interpolated data (Same as with ft_sourceplot but handling axes objects)
-    degree = sourceInterp.degree;
-    cc = sourceInterp.cc;
     
-    nexttile(t_degree);
-    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv');
-    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', degree, 'clim', [min(degree) max(degree)],'colormap',jet(64));
-    colorbar;
-    camlight;  
+    % Plot degree at the 400 sources
+    % Interpolate colormap to correct range
+    cmin = min(graph_measures.degree);
+    cmax = max(graph_measures.degree);
+    index = fix((graph_measures.degree-cmin)/(cmax-cmin)*256)+1;
+    rgb = squeeze(ind2rgb(index,parula(256)));
+    
+    ax_d = nexttile(t_degree);  
+    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv','facealpha',0.1);
+    ft_plot_mesh(sourcemodel_atlas.pos, 'vertexsize',20, 'vertexcolor',rgb);
+    ax_d.CLim = [cmin cmax];
+    colorbar(ax_d);
     title(freqNames(iFreq));
     
-    nexttile(t_cc);
-    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv');
-    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', cc, 'clim', [min(cc) max(cc)],'colormap',jet(64));
-    colorbar;
-    camlight;  
+    % Plot global clustering coefficient at the 400 sources
+    cmin = min(graph_measures.cc);
+    cmax = max(graph_measures.cc);
+    index = fix((graph_measures.cc-cmin)/(cmax-cmin)*256)+1;
+    rgb = squeeze(ind2rgb(index,parula(256)));
+    
+    ax_c = nexttile(t_cc);  
+    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv','facealpha',0.1);
+    ft_plot_mesh(sourcemodel_atlas.pos, 'vertexsize',20, 'vertexcolor',rgb);
+    ax_c.CLim = [cmin cmax];
+    colorbar(ax_c);
     title(freqNames(iFreq));
 
     % Set global graph measures in a matrix for plotting
