@@ -21,17 +21,10 @@ for iFreq=1:length(freqNames)
     cfg.parameter = 'pow';
     sourceInterp = ft_sourceinterpolate(cfg, source, surf);
     
-%     % Plot the interpolated data
-%     cfg = [];
-%     cfg.funparameter = 'pow';
-%     cfg.method = 'surface';
-%     cfg.funcolormap = 'jet';
-%     ft_sourceplot(cfg,sourceInterp);
-    
     % Plot the interpolated data (Same as with ft_sourceplot but handling axes objects)
     pow = sourceInterp.pow;
     ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv');
-    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', pow, 'clim', [min(pow) max(pow)],'colormap',jet(64));
+    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', pow, 'clim', [min(pow) max(pow)],'colormap',parula(64));
     colorbar;
     camlight;
    
