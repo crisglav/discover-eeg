@@ -220,7 +220,8 @@ cd(params.main_folder)
 % 
 % % OPTIONAL -  Visualization of atlas regions by network
 % plot_atlasregions(params);
-
+freqs = fields(params.freq_band);
+conMeas = {'dwpli','aec'};
 for iRec=1:length(STUDY.datasetinfo)
     
     % BIDS ID
@@ -238,17 +239,17 @@ for iRec=1:length(STUDY.datasetinfo)
     end    
     
     % Loop over frequency bands
-    for iFreq = fields(params.freq_band)'
+    for iFreq = 1:length(freqs)
         
         % 3. SOURCE RECONSTRUCTION (power at source space)
-        if ~exist(fullfile(params.source_folder,[bidsID '_source_' iFreq{:} '.mat']),'file')
-            compute_spatial_filter(params,bidsID,iFreq{:});
+        if ~exist(fullfile(params.source_folder,[bidsID '_source_' freqs{iFreq} '.mat']),'file')
+            compute_spatial_filter(params,bidsID,freqs{iFreq});
         end
         
         % 4.A FUNCTIONAL CONNECTIVITY - dwPLI
-        if ~exist(fullfile(params.connectivity_folder,[bidsID '_dwpli_' iFreq{:} '.mat']),'file')
+        if ~exist(fullfile(params.connectivity_folder,[bidsID '_dwpli_' freqs{iFreq} '.mat']),'file')
             try
-                compute_dwpli(params,bidsID,iFreq{:});
+                compute_dwpli(params,bidsID,freqs{iFreq});
             catch ME
                 warning([bidsID ' - ' ME.message]);
                 continue;
@@ -257,21 +258,21 @@ for iRec=1:length(STUDY.datasetinfo)
 
         
         % 4.B FUNCTIONAL CONNECTIVITY - AEC
-        if ~exist(fullfile(params.connectivity_folder,[bidsID '_aec_' iFreq{:} '.mat']),'file')
-            compute_aec(params,bidsID,iFreq{:});
+        if ~exist(fullfile(params.connectivity_folder,[bidsID '_aec_' freqs{iFreq} '.mat']),'file')
+            compute_aec(params,bidsID,freqs{iFreq});
         end
         
         % 5. NETWORK CHARACTERIZATION (GRAPH MEASURES)
-        if ~exist(fullfile(params.graph_folder,[bidsID '_graph_dwpli_' iFreq{:} '.mat']),'file')
+        if ~exist(fullfile(params.graph_folder,[bidsID '_graph_dwpli_' freqs{iFreq} '.mat']),'file')
             try
-                compute_graph_measures(params,bidsID,iFreq{:},'dwpli');
+                compute_graph_measures(params,bidsID,freqs{iFreq},'dwpli');
             catch ME
                 warning([bidsID ' - ' ME.message]);
                 continue;
             end
         end
-        if ~exist(fullfile(params.graph_folder,[bidsID '_graph_aec_' iFreq{:} '.mat']),'file')
-            compute_graph_measures(params,bidsID,iFreq{:},'aec');
+        if ~exist(fullfile(params.graph_folder,[bidsID '_graph_aec_' freqs{iFreq} '.mat']),'file')
+            compute_graph_measures(params,bidsID,freqs{iFreq},'aec');
         end
         
     end
@@ -284,12 +285,12 @@ for iRec=1:length(STUDY.datasetinfo)
         close(fig);
     end
     
-    for iConMeas = {'dwpli','aec'}
+    for iConMeas = 1:length(conMeas)
         % Plot connectivity matrices in all frequency bands and save them in connectivity folder
-        if ~exist(fullfile(params.connectivity_folder,[bidsID '_' iConMeas{:} '.svg']),'file')
+        if ~exist(fullfile(params.connectivity_folder,[bidsID '_' conMeas{iConMeas} '.svg']),'file')
             try
-                fig = plot_connectivity(params,bidsID,iConMeas{:});
-                saveas(fig,fullfile(params.connectivity_folder,[bidsID '_' iConMeas{:} '.svg']));
+                fig = plot_connectivity(params,bidsID,conMeas{iConMeas});
+                saveas(fig,fullfile(params.connectivity_folder,[bidsID '_' conMeas{iConMeas} '.svg']));
                 close(fig);
             catch ME
                 warning([bidsID ' - ' ME.message]);
@@ -298,14 +299,14 @@ for iRec=1:length(STUDY.datasetinfo)
 
         
         % Plot graph measures in all frequency bands and save them in the graph measures folder
-        if ~exist(fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_degree.svg']),'file') ||...
-                ~exist(fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_cc.svg']),'file') ||...
-                ~exist(fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_global.svg']),'file')
+        if ~exist(fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_degree.svg']),'file') ||...
+                ~exist(fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_cc.svg']),'file') ||...
+                ~exist(fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_global.svg']),'file')
             try
-                [f_degree, f_cc, f_global] = plot_graph_measures(params,bidsID,iConMeas{:});
-                saveas(f_degree,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_degree.svg']));
-                saveas(f_cc,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_cc.svg']));
-                saveas(f_global,fullfile(params.graph_folder,[bidsID '_' iConMeas{:} '_global.svg']));
+                [f_degree, f_cc, f_global] = plot_graph_measures(params,bidsID,conMeas{iConMeas});
+                saveas(f_degree,fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_degree.svg']));
+                saveas(f_cc,fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_cc.svg']));
+                saveas(f_global,fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_global.svg']));
                 close(f_degree, f_cc, f_global);
             catch ME
                 warning([bidsID ' - ' ME.message]);

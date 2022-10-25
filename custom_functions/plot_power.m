@@ -13,7 +13,7 @@ plot(power.freq,avgpow,'k');
 hold on
 box off
 title(['Average PSD of ' bidsID],'Interpreter','None');
-ylabel('Power (uV/Hz)');
+ylabel('Power (uV^2/Hz)');
 xlabel('Frequency (Hz)');
 c = lines(length(freqNames));
 for iFreq =1:length(freqNames)
