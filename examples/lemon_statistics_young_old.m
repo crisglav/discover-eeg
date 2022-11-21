@@ -1,6 +1,16 @@
-% COMPARISON BETWEEN YOUNG AND OLD GROUPS ON THE LEMON DATASET
+%% Comparison of EEG features between old and young groups on the LEMON dataset
 %
-% Cristina Gil, 18.08.2022
+% This script compares the EEG features obtained after applyting the
+% pipeline between old and young people on the LEMON dataset.
+%
+% The bayesFactor package for Bayesian statistics testing 
+% and the Raincloud plots function need to be downloaded for statistical
+% analysis and visualization, respectively. The code can be found in:
+%
+% - BayesFactor [https:/www.github.com/klabhub/bayesFactor]
+% - Raincloud plots [https:/www.github.com/RainCloudPlots/RainCloudPlots]
+%
+% Cristina Gil, 21.11.2022, Technical University of Munich
 
 clear all;
 
@@ -39,7 +49,7 @@ old_ids = subject(mask_old);
 freqBands = {'theta','alpha','beta','gamma'};
 connMeas = {'dwpli','aec'};
 %% ALPHA PEAK FREQUENCY
-% Load peak frequency data from everybody
+% Load peak frequency data from all recordings
 apf_path = fullfile(study_path, 'EEG_features','power');
 
 nSubj = length(subject);
@@ -105,7 +115,7 @@ for i=1:length(networks)
 end
 newpos = vertcat(pos{:});
 
-%% List matrices
+% List matrices
 meas = 'aec'; % 'dwpli' or 'aec'
 
 conn_files = dir(fullfile(connectivity_path,['*_' meas '_*.mat']));
@@ -145,9 +155,6 @@ for iBand=1:length(freqBands)
     old_conn_r = old_conn(newpos,newpos,:);
     young_conn_r = young_conn(newpos,newpos,:);
     
-    conn.(fBand).old = mean(old_conn_r,3);
-    conn.(fBand).young = mean(young_conn_r,3);
-    
     % 79800 bayesian two-sided independent sample ttests between old and young
     % connectivity matrices (one test per source pair)
     b = nan(400,400);
@@ -177,9 +184,9 @@ for iBand=1:length(freqBands)
 end
 
 save(['stats_' meas '_conn.mat'],'stats');
-%% Connectivity - Bayes factors
+%% Connectivity - Plot t-values and Bayes factors
 % Load stats file
-meas = 'dwpli';
+meas = 'aec';
 statsfile = ['stats_' meas '_conn.mat'];
 load(statsfile);
 
@@ -187,18 +194,37 @@ fig = figure('Units','centimeters','Position',[0 0 11 8], 'visible', 'on');
 tcl = tiledlayout(2,2,'TileSpacing','compact','Padding','none');
 
 % Plot matrices with t-values color coded. Shade in grey all t-values
-% with 1/30 < BF < 30
+% with low evidence (1/30 < BF < 30)
 for iBand=1:length(freqBands)
     fBand = freqBands{iBand};
-    % Plot t values, low evidence t-values are faded 
-    high_evidence = or(stats.(fBand).bf >= 30, stats.(fBand).bf <= 1/30);
+    
+    % Bayesian statistics 
+    high_evidence_cc = or(stats.(fBand).bf >= 30, stats.(fBand).bf <= 1/30);
     low_evidence = and(stats.(fBand).bf > 1/30, stats.(fBand).bf < 30);
+    
+%     % Frequentist statistics
+%     high_evidence = stats.(fBand).padj < 0.05;
+%     low_evidence = stats.(fBand).padj >= 0.05;
+    
     ax = nexttile(tcl);
     imagesc(stats.(fBand).tval,'AlphaData',or(isnan(stats.(fBand).tval),low_evidence)*0.1);
     hold on
-    imagesc(stats.(fBand).tval,'AlphaData',high_evidence);
+    imagesc(stats.(fBand).tval,'AlphaData',high_evidence_cc);
     colormap([1 1 1; parula(255)]);
     hold off
+    
+%     % Plot bayes factors - I don't like this option because you don't
+%     see the direction of the effect
+%     high_evidence = or(stats.(fBand).bf >= 30, stats.(fBand).bf <= 1/30);
+%     low_evidence = and(stats.(fBand).bf > 1/30, stats.(fBand).bf < 30);
+%     ax = nexttile(tcl);
+%     imagesc(log(stats.(fBand).bf),'AlphaData',or(isnan(stats.(fBand).bf),low_evidence)*0.1);
+%     hold on
+%     imagesc(log(stats.(fBand).bf),'AlphaData',high_evidence);
+%     caxis([log(1/30) log(30)])
+%     colormap([1 1 1; parula(255)]);
+%     hold off
+    
     set(ax,'XTick',axistickslabelpos,'XtickLabel',[],'YTick',axistickslabelpos,'YtickLabel',[],'TickLength',[0 0],'TickDir','out','box','off')
     if iBand ==3
         set(ax,'XtickLabel',networks,'XtickLabelRotation',45,'YtickLabel',networks)
@@ -215,7 +241,7 @@ saveas(fig,[meas '_conn_bf.svg']);
 graph_path = fullfile(study_path, 'EEG_features','graph_measures');
 
 % List matrices
-meas = 'dwpli';
+meas = 'aec';
 graph_files = dir(fullfile(graph_path,['*_' meas '_*.mat']));
 
 for iBand=1:length(freqBands)
@@ -270,41 +296,76 @@ for iBand=1:length(freqBands)
     data.geff(iBand,:) = {young_geff,old_geff};
     data.s(iBand,:) = {young_s,old_s};
     
-%     p_degree = nan(1,400);
-%     t_degree = nan(1,400);
-%     p_cc = nan(1,400);
-%     t_cc = nan(1,400);
-%     % 400 two sided independent sample ttests between old and young
-%     % local measures
-%     for i=1:400
-%         y_degree = old_degree(:,i);
-%         o_degree = young_degree(:,i);
-%         [~,p_degree(i),~,stats] = ttest2(o_degree,y_degree);
-%         t_degree(i) = stats.tstat;
-%         
-%         y_cc = old_cc(:,i);
-%         o_cc = young_cc(:,i);
-%         [~,p_cc(i),~,stats] = ttest2(o_cc,y_cc);
-%         t_cc(i) = stats.tstat;
-%     end
-%     % Corret p-values for multiple comparisons with fdr
-%     [~,~,padj.degree.(fBand)] = fdr(p_degree);
-%     [~,~,padj.cc.(fBand)] = fdr(p_cc);
-%     t.degree.(fBand) = t_degree;
-%     t.cc.(fBand) = t_cc;
-%     
-%     % Two-sided independent samples t-tests for the global measures
-%     [~,p.gcc(iBand),~,stats] = ttest2(old_gcc,young_gcc);
-%     t.gcc(iBand) = stats.tstat;
-%     [~,p.geff(iBand),~,stats.geff] = ttest2(old_geff,young_geff);
-%     t.geff(iBand) = stats.tstat;
-%     [~,p.s(iBand),~,stats] = ttest2(old_s,young_s);
-%     t.s(iBand) = stats.tstat;
+    % Statistics - local measures
+    t_degree = nan(1,400);
+    b_degree = nan(1,400);
+    p_degree = nan(1,400);
+    
+    t_cc = nan(1,400);
+    b_cc = nan(1,400);
+    p_cc = nan(1,400);
+    % 400 two sided independent sample Bayesian ttests between old and young
+    % local measures
+    for i=1:400
+        o_degree = old_degree(:,i);
+        y_degree = young_degree(:,i);
+        [~,p,~,s] = ttest2(o_degree,y_degree);
+        p_degree(i) = p;
+        t_degree(i) = s.tstat;
+        b_degree(i) = bf.ttest('T',s.tstat,'N',[numel(o_degree) numel(y_degree)]);
+            
+        o_cc = old_cc(:,i);
+        y_cc = young_cc(:,i);
+        [~,p,~,s] = ttest2(o_cc,y_cc);
+        p_cc(i) = p;
+        t_cc(i) = s.tstat;
+        b_cc(i) = bf.ttest('T',s.tstat,'N',[numel(o_cc) numel(y_cc)]);
+    end
+    % Corret p-values for multiple comparisons with fdr
+    [~,~,padj_degree] = fdr(p_degree);
+    [~,~,padj_cc]     = fdr(p_cc);
+
+    stats.(fBand).degree.tval = t_degree;
+    stats.(fBand).degree.pval = p_degree;
+    stats.(fBand).degree.padj = padj_degree;
+    stats.(fBand).degree.bf   = b_degree;
+    stats.(fBand).cc.tval = t_cc;
+    stats.(fBand).cc.pval = p_cc;
+    stats.(fBand).cc.padj = padj_cc;
+    stats.(fBand).cc.bf   = b_cc;    
+    
+    % Statistics - global measures    
+    % Two-sided independent samples Bayesian t-tests between old and young global measures
+    
+    [~,p,~,s] = ttest2(old_gcc,young_gcc);
+    b = bf.ttest('T',s.tstat,'N',[numel(old_gcc) numel(young_gcc)]);    
+    stats.(fBand).gcc.tval = s.tstat;
+    stats.(fBand).gcc.pval = p;
+    stats.(fBand).gcc.bf = b;
+
+    [~,p,~,s] = ttest2(old_geff,young_geff);
+    b = bf.ttest('T',s.tstat,'N',[numel(old_geff) numel(young_geff)]);    
+    stats.(fBand).geff.tval = s.tstat;
+    stats.(fBand).geff.pval = p;
+    stats.(fBand).geff.bf = b;
+    
+    [~,p,~,s] = ttest2(old_s,young_s);
+    b = bf.ttest('T',s.tstat,'N',[numel(old_s) numel(young_s)]);    
+    stats.(fBand).s.tval = s.tstat;
+    stats.(fBand).s.pval = p;
+    stats.(fBand).s.bf = b;
     
 end
-% save(['stats_' meas '_graph.mat'],'p','padj','t');
-%%
-% raincloudplots for the global variables
+save(['stats_' meas '_graph.mat'],'stats');
+save(['data_' meas '_graph.mat'],'data');
+%% Raincloud plots - global measures
+% Load stats file
+meas = 'aec';
+statsfile = ['stats_' meas '_graph.mat'];
+load(statsfile);
+datafile = ['data_' meas '_graph.mat'];
+load(datafile);
+
 colours = lines(2);
 f = figure('Units','centimeters','Position', [0 0 18 5]);
 tlc = tiledlayout(1,3,'Padding','compact');
@@ -331,13 +392,9 @@ h(1) = scatter(nan,nan,10,colours(1,:),'filled');
 hold on
 h(2) = scatter(nan,nan,10,colours(2,:),'filled');
 legend(h,'young','old');
-saveas(f,['global_' meas '_rainclouds.svg']);
+saveas(f,[meas '_graph_global.svg']);
 
-%% plot local measures
-meas = 'aec';
-statsfile = ['stats_' meas '_graph.mat'];
-load(statsfile);
-
+%% Brain plots - local measures
 % Load surface structure
 surf = ft_read_headshape('surface_white_both.mat');
 % Source model: centroid positons from Schaefer atlas
@@ -357,41 +414,43 @@ tlc_cc = tiledlayout(f_cc,2,2,'TileSpacing','none','Padding','none');
 for iBand=1:length(freqBands)
     
     fBand = freqBands{iBand};
-    
-    % Plot t-values color coded, only significant values
-%     cmin = min(t.degree.(fBand));
-%     cmax = max(t.degree.(fBand));
     cmin = -4;
     cmax = 4;
-    index = fix((t.degree.(fBand)-cmin)/(cmax-cmin)*256)+1;
-    rgb = squeeze(ind2rgb(index,parula(256)));
-    significant = padj.degree.(fBand)<0.05;
     
+    % Bayesian statistics
+    high_evidence_degree = or(stats.(fBand).degree.bf >= 30, stats.(fBand).degree.bf <= 1/30);
+    high_evidence_cc = or(stats.(fBand).cc.bf >= 30, stats.(fBand).cc.bf <= 1/30);
+
+%     % Frequentist statistics
+%     high_evidence_degree = stats.(fBand).degree.padj < 0.05;
+%     high_evidence_cc = stats.(fBand).cc.padj < 0.05;
+    
+    % Plot t-values color coded, only high evidence/significant values    
+    % Degree
+    index = fix((stats.(fBand).degree.tval-cmin)/(cmax-cmin)*256)+1;
+    rgb = squeeze(ind2rgb(index,parula(256)));
     ax1 = nexttile(tlc_degree);
-    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv','facealpha',0.1);
-    ft_plot_mesh(sourcemodel_atlas.pos(significant,:), 'vertexsize',8, 'vertexcolor',rgb(significant,:));
+    ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv','facealpha',0.1);    
+    ft_plot_mesh(sourcemodel_atlas.pos(high_evidence_degree,:), 'vertexsize',8, 'vertexcolor',rgb(high_evidence_degree,:));
     ax1.CLim = [cmin cmax];
-%     cmin = min(t.cc.(fBand));
-%     cmax = max(t.cc.(fBand));
-    cmin = -4;
-    cmax = 4;
-    index = fix((t.cc.(fBand)-cmin)/(cmax-cmin)*256)+1;
-    rgb = squeeze(ind2rgb(index,parula(256)));
-    significant = padj.cc.(fBand)<0.05;
-    ax2 = nexttile(tlc_cc);
     
+    % Global clustering coefficient
+    index = fix((stats.(fBand).cc.tval-cmin)/(cmax-cmin)*256)+1;
+    rgb = squeeze(ind2rgb(index,parula(256)));
+    ax2 = nexttile(tlc_cc);
     ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv','facealpha',0.1);
-    ft_plot_mesh(sourcemodel_atlas.pos(significant,:), 'vertexsize',8, 'vertexcolor',rgb(significant,:));
+    ft_plot_mesh(sourcemodel_atlas.pos(high_evidence_cc,:), 'vertexsize',8, 'vertexcolor',rgb(high_evidence_cc,:));
     ax2.CLim = [cmin cmax];
 end
 colorbar(ax1);
 colorbar(ax2);
-saveas(f_degree,['degree_' meas '.bmp']);
-saveas(f_cc,['cc_' meas '.bmp']);
+saveas(f_degree,[meas '_graph_degree.bmp']);
+saveas(f_cc,[meas '_graph_cc.bmp']);
 
+%% colorbar figure
 f = figure('Units','centimeters','Position',[0 0 3 4]);
 ax = axes;
 c = colorbar(ax,'Location','southoutside');
 caxis([-4 4]);
 ax.Visible = 'off';
-saveas(f,['colorbar.svg']);
+saveas(f,'colorbar.svg');
