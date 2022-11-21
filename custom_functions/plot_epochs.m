@@ -1,9 +1,9 @@
 function plot_epochs(params,EEG)
-nTrials = [EEG.trials];
+nepochs = cellfun(@length,{EEG.epoch});
 nRec = length(EEG);
 
 f = figure('units','normalized','outerposition',[0 0 1 1]);
-bar(nTrials);
+bar(nepochs);
 
 % Recording IDs
 s_ids = cellfun(@(x) regexp(x,'.*(?=_eeg.set)','match','lineanchors'),{EEG.filename});
@@ -27,8 +27,8 @@ set(gca,'xticklabel',s_ids(1:2:nRec),'xticklabelrotation',45)
 xlabel('Recording ID');
 ylabel('Number of clean epochs');
 title('Number of epochs after preprocessing');
-saveas(f,fullfile(params.figures_preprocessing_folder, 'Trials.svg'),'svg');
-savefig(f,fullfile(params.figures_preprocessing_folder, 'Trials.fig'));
-save(fullfile(params.figures_preprocessing_folder, 'BadSegments.mat'),'nTrials');
+saveas(f,fullfile(params.figures_preprocessing_folder, 'Epochs.svg'),'svg');
+savefig(f,fullfile(params.figures_preprocessing_folder, 'Epochs.fig'));
+save(fullfile(params.figures_preprocessing_folder, 'Epochs.mat'),'nepochs');
 
 end
