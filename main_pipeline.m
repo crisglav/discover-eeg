@@ -1,7 +1,7 @@
 % Imports EEG dataset, preprocesses it, and extracts brain features
 % 
 % Cristina Gil, TUM, cristina.gil@tum.de, 25.07.2022
-function main_pipeline()
+
 
 clear all; close all;
 rng('default'); % For reproducibility - See discussion in https://sccn.ucsd.edu/pipermail/eeglablist/2022/016932.html
@@ -10,66 +10,73 @@ rng('default'); % For reproducibility - See discussion in https://sccn.ucsd.edu/
 params = define_params();
 cd(params.main_folder)
 save(fullfile(params.preprocessed_data_path,'pipeline_params.mat'),'params');
-
+ 
 if(isempty(gcp('nocreate')))
-    parObj = parpool(4);
+    parObj = parpool();
 end
 
 %% ======= IMPORT RAW DATA =========
-% Import raw data in BIDS format
-[STUDY, ALLEEG] = pop_importbids(params.raw_data_path,'outputdir',params.preprocessed_data_path,...
-    'studyName',params.study,'bidstask',params.task,'bidschanloc',params.bidschanloc,'bidsevent','off');
-
-
-for iRec=1:length(ALLEEG)
-    % Retrieve data
-    EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata');
+% Try to load the already created study, otherwise import raw data with pop_importbids
+if exist(fullfile(params.preprocessed_data_path,[params.study '.study']),'file')
+    [STUDY, ALLEEG] = pop_loadstudy('filename', [params.study '.study'], 'filepath', params.preprocessed_data_path);
+else
+    % Import raw data in BIDS format
+    [STUDY, ALLEEG] = pop_importbids(params.raw_data_path,'outputdir',params.preprocessed_data_path,...
+        'studyName',params.study,'bidstask',params.task,'bidschanloc',params.bidschanloc,'bidsevent','off');
     
-    % Add reference electrode
-    EEGtemp = pop_chanedit(EEGtemp, 'append',EEGtemp.nbchan, ...
-        'changefield', {EEGtemp.nbchan+1,'labels',ALLEEG(iRec).BIDS.tInfo.EEGReference},...
-        'changefield', {EEGtemp.nbchan+1, 'X', params.RefCoord.X}, ...
-        'changefield', {EEGtemp.nbchan+1, 'Y', params.RefCoord.Y}, ...
-        'changefield', {EEGtemp.nbchan+1, 'Z', params.RefCoord.Z},...
-        'setref',{['1:' num2str(EEGtemp.nbchan)],ALLEEG(iRec).BIDS.tInfo.EEGReference});
-    
-    % Use electrode positions from the electrodes.tsv file or from a standard template in the MNI coordinate system
-    if strcmp(params.bidschanloc, 'on')
-        % If electrode positions are chosen from the .tsv the coordinate
-        % system might need to be adjusted (user has to define it in define_params.m)
-        EEGtemp = pop_chanedit(EEGtemp, 'nosedir',params.nosedir);
-        eegchans = find(contains(lower({ALLEEG(1).chanlocs.type}),'eeg'));
-    else
-        % Look for electrode positions in a standard template
-        EEGtemp=pop_chanedit(EEGtemp, 'lookup','standard_1005.elc');
-        non_standard_chans = cellfun(@isempty,{EEGtemp.chanlocs.X});
-        eegchans = find(~non_standard_chans);
-        if any(non_standard_chans)
-            clabels = {EEGtemp.chanlocs(non_standard_chans).labels};
-            c = sprintf('%s ', clabels{:});
-            warning(['The position of the channel(s) ' c 'was not found in a standard template and they will be removed. If you want to include them please specify their position in a electrodes.tsv and change define_params accordingly.']);           
+    for iRec=1:length(ALLEEG)
+        % Retrieve data
+        EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata');
+        
+        % Add reference electrode
+        EEGtemp = pop_chanedit(EEGtemp, 'append',EEGtemp.nbchan, ...
+            'changefield', {EEGtemp.nbchan+1,'labels',ALLEEG(iRec).BIDS.tInfo.EEGReference},...
+            'changefield', {EEGtemp.nbchan+1, 'X', params.RefCoord.X}, ...
+            'changefield', {EEGtemp.nbchan+1, 'Y', params.RefCoord.Y}, ...
+            'changefield', {EEGtemp.nbchan+1, 'Z', params.RefCoord.Z},...
+            'setref',{['1:' num2str(EEGtemp.nbchan)],ALLEEG(iRec).BIDS.tInfo.EEGReference});
+        
+        % Use electrode positions from the electrodes.tsv file or from a standard template in the MNI coordinate system
+        if strcmp(params.bidschanloc, 'on')
+            % If electrode positions are chosen from the .tsv the coordinate
+            % system might need to be adjusted (user has to define it in define_params.m)
+            EEGtemp = pop_chanedit(EEGtemp, 'nosedir',params.nosedir);
+            eegchans = find(contains(lower({ALLEEG(1).chanlocs.type}),'eeg'));
+        else
+            % Look for electrode positions in a standard template
+            EEGtemp=pop_chanedit(EEGtemp, 'lookup','standard_1005.elc');
+            non_standard_chans = cellfun(@isempty,{EEGtemp.chanlocs.X});
+            eegchans = find(~non_standard_chans);
+            if any(non_standard_chans)
+                clabels = {EEGtemp.chanlocs(non_standard_chans).labels};
+                c = sprintf('%s ', clabels{:});
+                warning(['The position of the channel(s) ' c 'was not found in a standard template and they will be removed. If you want to include them please specify their position in a electrodes.tsv and change define_params accordingly.']);
+            end
         end
+        
+        % Select only EEG channels for preprocessing
+        EEGtemp = pop_select(EEGtemp, 'channel', eegchans);
+        EEGtemp.chaninfo.removedchans = [];
+        
+        % Save datafile, clear it from memory and store it in the ALLEEG structure
+        EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
+        EEGtemp.data = 'in set file';
+        ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
+        STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.study, 'filepath', params.preprocessed_data_path);
+        
     end
-    
-    % Select only EEG channels for preprocessing
-    EEGtemp = pop_select(EEGtemp, 'channel', eegchans);
-    EEGtemp.chaninfo.removedchans = [];
-    
-    % Save datafile, clear it from memory and store it in the ALLEEG structure
-    EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
-    EEGtemp.data = 'in set file';
-    ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
-    STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.study, 'filepath', params.preprocessed_data_path);
-
 end
-
 % % OPTIONAL - Check that the electrodes positions are ok
 % figure; topoplot([],ALLEEG(1).chanlocs, 'style', 'blank',  'electrodes', 'labelpoint', 'chaninfo',ALLEEG(1).chaninfo);
 % figure; topoplot([],ALLEEG(1).chaninfo.nodatchans, 'style', 'blank',  'electrodes', 'labelpoint');
 
 %% ======== PREPROCESSING =========
+% Find the latest preprocessed recording and start with the next one
+first = find(cellfun(@isempty, {ALLEEG.setname}),1);
 to_delete = {};
-for iRec=1:length(ALLEEG)
+
+% Loop over the recordings that have not been preprocessed
+for iRec=first:length(ALLEEG)
 
     % Retrieve data
     EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata');
@@ -186,12 +193,14 @@ for iRec=1:length(ALLEEG)
 end
 
 % Delete recordings
-for iRec = 1:length(to_delete)
-    mask = strcmp({ALLEEG.filename},to_delete{iRec});
-    ALLEEG(mask) = [];
-    STUDY.datasetinfo(mask) = [];
-    STUDY.subject(mask) = [];
-end
+mask = matches({ALLEEG.filename},to_delete);
+ALLEEG(mask) = [];
+STUDY.datasetinfo(mask) = [];
+s = split(to_delete,{'_'});
+s = unique(s(:,:,1));
+mask = matches(STUDY.subject,s);
+STUDY.subject(mask) = [];
+
 % Save study
 STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.study '-clean'], 'filepath', params.preprocessed_data_path);
 
@@ -325,7 +334,7 @@ for iRec=1:length(STUDY.datasetinfo)
         
     end
 end
-end
+
 
 
 
