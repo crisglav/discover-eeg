@@ -5,20 +5,19 @@ function params = define_params()
 %% DATA AND TOOLBOXES PATHS (TO BE MODIFIED BY USER)
 
 % The name of your study
-params.study = 'LEMON-8min';
+params.study = 'CP-CGX';
 
 % The path of your raw data in BIDS format
-params.raw_data_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-8min-bids';
+params.raw_data_path = '/rechenmagd4/Experiments/2022_chronic_pain_CGX/cpCGX_BIDS/';
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
-% t = datestr(now,'yyyy_mm_dd');
-t = '2022_10_05';
+t = datestr(now,'yyyy_mm_dd');
 params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' t]);
 
 % Parameter to select a specific task. If you want to look at a specific task, specify its name as in the BIDS
 % standard (e.g. 'closed', 'open'). By default all tasks are processed ([])
-params.task =  [];
+params.task =  'EC';
 
 % EEGLab path
 params.eeglab_path = '/rechenmagd4/toolboxes_and_functions/eeglab';
@@ -29,7 +28,7 @@ params.fieldtrip_path = '/rechenmagd4/toolboxes_and_functions/fieldtrip';
 % Brain Connectivity Toolbox path
 params.bct_path = '/rechenmagd4/toolboxes_and_functions/2019_03_03_BCT';
 
-% Add the toolboxes and pipeline functions to matlab path (do not need to be modified by the user)
+% Add the toolboxes and pipeline functions to matlab path (does not need to be modified by the user)
 run(fullfile(params.eeglab_path,'eeglab.m'));
 addpath(params.fieldtrip_path);
 ft_defaults
@@ -105,12 +104,12 @@ params.WindowCriterionTolerances = [-Inf 7];
 
 % ===== Segmentation into epochs =====
 % Parameters to define the segmentation into epochs (Default 10s epochs with 50% overlap)
-params.epoch_length = 10; % In seconds
+params.epoch_length = 2; % In seconds
 params.epoch_overlap = 0.5; % In percentage
 
 %%  FEATURE EXTRACTION PARAMETERS
 %  ==== Power spectrum ====
-% Frequency resolution (default 1/epoch_length, i.e. 0.1 Hz)
+% Frequency resolution (default 1/epoch_length, i.e. 0.5 Hz)
 params.freq_res = 1/params.epoch_length; % In Herz
 % Type of taper for computing the power spectrum (default 'dpss')
 params.taper = 'dpss';
@@ -127,8 +126,8 @@ params.freq_band.gamma = [30+params.freq_res 80];
 % ==== Source reconstruction =====
 % Head model (default 'standard_bem.mat')
 params.volpath = fullfile(params.fieldtrip_path,'template','headmodel','standard_bem.mat');
-% Atlas positions (default 400 source positions based on the Schaefer atlas: 'Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv')
-params.atlaspath = fullfile('parcellations','Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
+% Atlas positions (default 100 source positions based on the Schaefer atlas)
+params.atlaspath = fullfile('parcellations','Schaefer2018_100Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
 % Brain surface model for plotting (default 'surface_white_both.mat')
 params.surf = fullfile(params.fieldtrip_path,'template','anatomy','surface_white_both.mat');
 

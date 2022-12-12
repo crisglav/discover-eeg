@@ -25,7 +25,7 @@ for i=1:length(networks)
 end
 legend(h,networks,'color','none');
 view(90,0);
-title ('Schaefer atlas, 400 sources')
-saveas(f,fullfile(params.preprocessed_data_path,'EEG_features','Schaefer atlas 400 sources.svg'));
+title ('Schaefer atlas 100 sources')
+saveas(f,fullfile(params.preprocessed_data_path,'EEG_features','Schaefer atlas.svg'));
 close(f);
 end
