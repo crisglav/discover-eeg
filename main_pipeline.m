@@ -8,7 +8,6 @@ rng('default'); % For reproducibility - See discussion in https://sccn.ucsd.edu/
 
 % Define the parameters
 params = define_params();
-cd(params.main_folder)
 save(fullfile(params.preprocessed_data_path,'pipeline_params.mat'),'params');
  
 if(isempty(gcp('nocreate')))
@@ -41,7 +40,7 @@ else
             % If electrode positions are chosen from the .tsv the coordinate
             % system might need to be adjusted (user has to define it in define_params.m)
             EEGtemp = pop_chanedit(EEGtemp, 'nosedir',params.nosedir);
-            eegchans = find(contains(lower({ALLEEG(1).chanlocs.type}),'eeg'));
+            eegchans = find(contains(lower({ALLEEG(iRec).chanlocs.type}),'eeg'));
         else
             % Look for electrode positions in a standard template
             EEGtemp=pop_chanedit(EEGtemp, 'lookup','standard_1005.elc');
@@ -167,7 +166,7 @@ for iRec=first:length(ALLEEG)
     % 7. SEGMENT DATA INTO EPOCHS
     % EEGLab pop_epoch is designed to trim the data based on events. For
     % resting-state data, in which no events are defined, this function is
-    % tricky to use. I added markers called 'epoch_start' each 10*(1-0.5) = 5 seconds with a duration of 1 sample.
+    % tricky to use. I added markers called 'epoch_start' each 2*(1-0.5) = 1 second with a duration of 1 sample.
     % Note: Epochs containing discontinutities will be automatically rejected.
     % Create markers each x seconds and add them at the end of existing event markers
     try
@@ -192,7 +191,17 @@ for iRec=first:length(ALLEEG)
 
 end
 
-% Delete recordings
+% PLOTTING PREPROCESSING
+% Visualization of detected bad channels. If you set 'FuseChanRej' on, the union of bad channels in all tasks is rejected!
+plot_badchannels(params,ALLEEG);
+% Visualization of rejected ICs
+plot_ICs(params,ALLEEG);
+% Visualization of rejected time segments
+plot_badtimesegments(params,ALLEEG);
+% Visualize number of clean epochs per recording
+plot_epochs(params,ALLEEG);
+
+% Delete recordings with no epochs remaining
 mask = matches({ALLEEG.filename},to_delete);
 ALLEEG(mask) = [];
 STUDY.datasetinfo(mask) = [];
@@ -204,28 +213,17 @@ STUDY.subject(mask) = [];
 % Save study
 STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.study '-clean'], 'filepath', params.preprocessed_data_path);
 
-% PLOTTING PREPROCESSING
-% Visualization of detected bad channels. If you set 'FuseChanRej' on, the union of bad channels in all tasks is rejected!
-plot_badchannels(params,ALLEEG);
-% Visualization of rejected ICs
-plot_ICs(params,ALLEEG);
-% Visualization of rejected time segments
-plot_badtimesegments(params,ALLEEG);
-% Visualize number of clean epochs per recording
-plot_epochs(params,ALLEEG);
-
 clear EEGtemp ALLEEG;
 
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
-% You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-params = define_params();
-cd(params.main_folder)
-[STUDY, ~] = pop_loadstudy('filename', [params.study '-clean.study'], 'filepath', params.preprocessed_data_path);
+% % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
+% params = define_params();
+% [STUDY, ~] = pop_loadstudy('filename', [params.study '-clean.study'], 'filepath', params.preprocessed_data_path);
 %%
 % % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
 % % electrodes are aligned with the head model)
-% plot_electrodesandsources(params,'sub-010002')
+% plot_electrodesandsources(params,'sub-001_task-EC')
 % 
 % % OPTIONAL -  Visualization of atlas regions by network
 % plot_atlasregions(params);
@@ -264,11 +262,15 @@ for iRec=1:length(STUDY.datasetinfo)
                 continue;
             end
         end
-
-        
+       
         % 4.B FUNCTIONAL CONNECTIVITY - AEC
         if ~exist(fullfile(params.connectivity_folder,[bidsID '_aec_' freqs{iFreq} '.mat']),'file')
-            compute_aec(params,bidsID,freqs{iFreq});
+            try
+                compute_aec(params,bidsID,freqs{iFreq});
+            catch ME
+                warning([bidsID ' - ' ME.message]);
+                continue;
+            end
         end
         
         % 5. NETWORK CHARACTERIZATION (GRAPH MEASURES)
@@ -281,7 +283,12 @@ for iRec=1:length(STUDY.datasetinfo)
             end
         end
         if ~exist(fullfile(params.graph_folder,[bidsID '_graph_aec_' freqs{iFreq} '.mat']),'file')
-            compute_graph_measures(params,bidsID,freqs{iFreq},'aec');
+            try
+                compute_graph_measures(params,bidsID,freqs{iFreq},'aec');
+            catch ME
+                warning([bidsID ' - ' ME.message]);
+                continue;
+            end
         end
         
     end

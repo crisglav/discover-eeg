@@ -12,7 +12,8 @@ params.raw_data_path = '/rechenmagd4/Experiments/2022_chronic_pain_CGX/cpCGX_BID
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
-t = datestr(now,'yyyy_mm_dd');
+% t = datestr(now,'yyyy_mm_dd');
+t = '2022_12_12';
 params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' t]);
 
 % Parameter to select a specific task. If you want to look at a specific task, specify its name as in the BIDS
@@ -103,14 +104,17 @@ params.WindowCriterion = 0.25;
 params.WindowCriterionTolerances = [-Inf 7];
 
 % ===== Segmentation into epochs =====
-% Parameters to define the segmentation into epochs (Default 10s epochs with 50% overlap)
+% Parameters to define the segmentation into epochs (Default 2s epochs with 50% overlap)
 params.epoch_length = 2; % In seconds
 params.epoch_overlap = 0.5; % In percentage
 
 %%  FEATURE EXTRACTION PARAMETERS
 %  ==== Power spectrum ====
-% Frequency resolution (default 1/epoch_length, i.e. 0.5 Hz)
-params.freq_res = 1/params.epoch_length; % In Herz
+% Frequency resolution is by default 1/epoch_length, i.e. 0.5 Hz.
+% It can be artificially increased with zero-padding. We select by default
+% a zero-padding to have a frequency resolution of 0.1 Hz.
+params.padding = 10/params.epoch_length;
+params.freq_res = 0.1;
 % Type of taper for computing the power spectrum (default 'dpss')
 params.taper = 'dpss';
 % Frequency smoothing of the power spectrum (default 1)
@@ -173,7 +177,5 @@ params.graph_folder = fullfile(params.preprocessed_data_path,'EEG_features','gra
 if ~exist(params.graph_folder,'dir')
     mkdir(params.graph_folder);
 end
-% Folder containing the main script of the pipeline 
-params.main_folder = pwd;
 
 end
