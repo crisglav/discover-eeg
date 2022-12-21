@@ -35,7 +35,7 @@ ics = [goodics, badics(mask_classes(2:end)), sum(badchans)];
 % Colormap and legend
 c = lines(sum(mask_classes)+2); % colormap
 c(end,:) = [1 1 1]; % Bad channels to white
-l = ['Kept ICs',classes(mask_classes)]; % Legend
+l = ['Kept ICs',classes(mask_classes), 'Bad chan']; % Legend
 
 % Deal with the case in which all components that weren't brain were rejected
 if all(~isnan(params.IClabel(1,:)))
@@ -48,13 +48,13 @@ if all(~isnan(params.IClabel(1,:)))
     l = {'Brain (kept)','Non-brain'};
 end
 
-IC_plot = figure('Position',[1988 548 1500 300],'visible','off');
+IC_plot =figure('Units','centimeters','Position', [0 0 18 2],'Visible','Off');
 h = barh(1,ics,'stacked');
 for k = 1:length(c), h(k).FaceColor = c(k,:); end
-legend(l,'Location','northeast');
+legend(l,'Location','northeastoutside');
 set(gca,'ytick',[],'yticklabel',{''});
 box('off')
-xlabel('Number of components');
+xlabel('Independent components');
 title('IC classification');
 
 ic_kept = goodics/(nChans-sum(badchans));

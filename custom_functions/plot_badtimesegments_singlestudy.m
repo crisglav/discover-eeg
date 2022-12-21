@@ -23,7 +23,7 @@ s = s(2:end)-s(1:end-1);
 segs(1,1:length(s)) = s;
 segs = segs./(hdr.orig.srate*60); % Divide by sampling rate
 
-bs_plot = figure('Position',[1988 548 1500 300],'visible','off');
+bs_plot = figure('Units','centimeters','Position', [0 0 18 2]);
 b = barh(1, segs(1,:),'stacked','EdgeColor','none');
 set(b,'FaceColor','Flat');
 for k = 1:find((segs(1,:)~=0),1,'last')
@@ -34,10 +34,10 @@ for k = 1:find((segs(1,:)~=0),1,'last')
     end
 end
 
-legend({'Good','Bad'},'Location','northeast');
+legend({'Good','Bad'},'Location','northeastoutside');
 set(gca,'ytick',[],'yticklabel',{''});
 box('off')
-xlabel('Lenght of the recording (minutes)');
+xlabel('Time (minutes)');
 title('Bad time segments');
 
 % Calculate bad segment time & percentage for the report

@@ -1,23 +1,24 @@
-function conn_fig = plot_connectivity(params,bidsID,connMeasure)
+function fig = plot_connectivity(params,bidsID,connMeasure)
 
 freqNames = fields(params.freq_band)';    
 
 % Load atlas
-atlas400 = readtable(params.atlaspath);
+atlas = readtable(params.atlaspath);
 % Points by network
 networks = {'Vis','SomMot','DorsAttn','SalVentAttn','Limbic','Cont','Default'};
 pos = cell(1,length(networks));
 axisticks = ones(1,length(networks)+1);
 axistickslabelpos = ones(1,length(networks));
 for i=1:length(networks)
-    pos{i}  = find(cellfun(@(x) contains(x,['_' networks{i} '_']), atlas400.ROIName)); % all sources belonging to network{i}
+    pos{i}  = find(cellfun(@(x) contains(x,['_' networks{i} '_']), atlas.ROIName)); % all sources belonging to network{i}
     axisticks(i+1) = length(pos{i})+axisticks(i);
     axistickslabelpos(i) = axisticks(i)+(axisticks(i+1)-axisticks(i))/2; % set the network label in the middle
 end
 newpos = vertcat(pos{:});
 
-conn_fig = figure('Position',[412 412 1200 1200], 'visible', 'off');
-tcl = tiledlayout(2,2);
+fig = figure('Units','centimeters','Position',[0 0 10 8.5], 'visible', 'off');
+tcl = tiledlayout(2,2,'TileSpacing','compact','Padding','none');
+
 for iFreq=1:length(freqNames)
     try
         % Load connectivity matrices
@@ -25,40 +26,28 @@ for iFreq=1:length(freqNames)
     catch
         error('Connectivity matrix could not be loaded');
     end
+    
     % Reshape connectivity matrices to match the atlas networks
     connMatrix_r = connMatrix(newpos,newpos);
-%     clim = max(abs(max(max(connMatrix_r))),abs(min(min(connMatrix_r))));
+    n = size(connMatrix);
+    
     % Plot
-    ax = nexttile;
-    imagesc(connMatrix_r);
-    set(ax,'XTick',axistickslabelpos,'XtickLabel',networks,'XtickLabelRotation',45,'YTick',axistickslabelpos,'YtickLabel',networks,'TickLength',[0 0],'TickDir','out','box','off')
+    ax = nexttile(tcl);
+    im = imagesc(connMatrix_r);
+    im.AlphaData = (triu(nan(n))+1); % Plot only half of the matrix as it is symetric
+    set(ax,'XTick',axistickslabelpos,'XtickLabel',[],'YTick',axistickslabelpos,'YtickLabel',[],'TickLength',[0 0],'TickDir','out','box','off')
+    if iFreq ==3
+        set(ax,'XtickLabel',networks,'XtickLabelRotation',45,'YtickLabel',networks)
+    end
+    
     grid on
-    grid minor
-    set(ax,'GridColor','w','GridAlpha',1,'Layer','top','MinorGridColor','w','MinorGridLineStyle','-','MinorGridAlpha',0.2);
+    set(ax,'GridColor','w','GridAlpha',0.5,'Layer','top');
     ax2 = copyobj(ax,ax.Parent);
     set(ax2,'Ytick',axisticks','Xtick',axisticks,'yticklabel',[],'xticklabel',[]);
-    ax2.XAxis.MinorTickValues = axistickslabelpos; % Subgrid separes left and right hemisferes
-    ax2.YAxis.MinorTickValues = axistickslabelpos;
     colorbar;
     title(freqNames(iFreq));
     
 end
-title(tcl,['Average ' connMeasure ' of ' bidsID],'Interpreter','None');
-
-% % Plot only one matrix at a freq band
-% % Thresholded connectivity matrix reorderd by networks
-% f1 = figure();
-% imagesc(c.*adjacency_matrix);
-% % imagesc(c,'AlphaData',adjacency_matrix+(~adjacency_matrix)*0.5);
-% ax = f1.CurrentAxes;
-% set(ax,'XTick',axistickslabelpos,'XtickLabel',networks,'XtickLabelRotation',45,'YTick',axistickslabelpos,'YtickLabel',networks,'TickLength',[0 0],'TickDir','out','box','off')
-% colorbar(ax);
-% grid on
-% grid minor
-% set(ax,'GridColor','w','GridAlpha',1,'LineWidth',1,'Layer','top','MinorGridColor','w','MinorGridLineStyle','-','MinorGridAlpha',0.2);
-% ax2 = copyobj(ax,ax.Parent);
-% set(ax2,'Ytick',axisticks','Xtick',axisticks,'yticklabel',[],'xticklabel',[],'Position',ax.Position);
-% ax2.XAxis.MinorTickValues = axistickslabelpos; % Subgrid separes left and right hemisferes
-% ax2.YAxis.MinorTickValues = axistickslabelpos;
+title(tcl,connMeasure);
 
 end
