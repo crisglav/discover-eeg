@@ -25,7 +25,7 @@ histogram(badchans);
 ylabel('number of recordings');
 xlabel('number of bad channels');
 saveas(f,fullfile(params.preprocessed_data_path,'preprocessing_visualization','badchan_hist.jpg'));
-display(['Number of bad channels: mean = ' num2str(mean(badchans)) ' std = ' std(badchans)]);
+display(['Number of bad channels: mean = ' num2str(mean(badchans)) ' std = ' num2str(std(badchans))]);
 
 % Bad ICs histogram
 extract_bad_ICs = @(x) sum((x(:,2:end) > params.IClabel(2:end,1)').*(x(:,2:end) < params.IClabel(2:end,2)'));
@@ -39,8 +39,7 @@ histogram(badics);
 ylabel('number of recordings');
 xlabel('number of bad ICs');
 saveas(f,fullfile(params.preprocessed_data_path,'preprocessing_visualization','badICs_hist.jpg'));
-mean(badics)
-std(badics)
+display(['Number of bad ICs: mean = ' num2str(mean(badics)) ' std = ' num2str(std(badics))]);
 
 % Bad segments histogram
 srates = cell2mat({ALLEEG.srate})';
@@ -52,15 +51,13 @@ histogram(badsegs,'BinEdges',linspace(0,200,11));
 ylabel('number of recordings');
 xlabel('total amount of rejected segments (seconds)');
 saveas(f,fullfile(params.preprocessed_data_path,'preprocessing_visualization','badsegs_hist.jpg'));
-mean(badsegs)
-std(badsegs)
+display(['Seconds of bad segments: mean = ' num2str(mean(badsegs)) ' std = ' num2str(std(badsegs))]);
 
 % Clean epochs left histogram
 nepochs = cellfun(@length,{ALLEEG.epoch});
 f = figure;
-histogram(nepochs,'BinEdges',0:10:80);
+histogram(nepochs);
 ylabel('number of recordings');
 xlabel('number of clean epochs');
 saveas(f,fullfile(params.preprocessed_data_path,'preprocessing_visualization','epochs_hist.jpg'));
-mean(nepochs)
-std(nepochs)
+display(['Number of clean epochs: mean = ' num2str(mean(nepochs)) ' std = ' num2str(std(nepochs))]);
