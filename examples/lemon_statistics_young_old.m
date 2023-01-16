@@ -1,14 +1,15 @@
 %% Comparison of EEG features between old and young groups on the LEMON dataset
 %
 % This script compares the EEG features obtained after applyting the
-% pipeline between old and young people on the LEMON dataset.
+% pipeline between old and young people on the LEMON dataset and generates
+% Figure 5 of the main manuscript.
 %
 % The bayesFactor package for Bayesian statistics testing 
 % and the Raincloud plots function need to be downloaded for statistical
 % analysis and visualization, respectively. The code can be found in:
 %
 % - BayesFactor [https:/www.github.com/klabhub/bayesFactor]
-% - Raincloud plots [https:/www.github.com/RainCloudPlots/RainCloudPlots]
+% - Raincloud plots [https:/www.github.com/crisglav/Raincloud_RM]
 %
 % Cristina Gil, 21.11.2022, Technical University of Munich
 
@@ -189,15 +190,18 @@ for iConnMeas = 1: length(connMeas)
     save(['stats_' meas '_conn.mat'],'stats');
 end
 %% Connectivity - Plot t-values and Bayes factors
+cmap = turbo;
+cmap = cmap(20:235,:); % limit the colormap so that it does not reach very dark red and very dark blue
 for iConnMeas = 1: length(connMeas)
     % Load stats file
     meas = connMeas{iConnMeas};
     statsfile = ['stats_' meas '_conn.mat'];
     load(statsfile);
     
-    fig = figure('Units','centimeters','Position',[0 0 11 8], 'visible', 'on');
+    fig = figure('Units','centimeters','Position',[0 0 10 10], 'visible', 'on');
     tcl = tiledlayout(2,2,'TileSpacing','compact','Padding','none');
-    
+    cmin = -4;
+    cmax = 4;
     % Plot matrices with t-values color coded. Shade in grey all t-values
     % with low evidence (1/30 < BF < 30)
     for iBand=1:length(freqBands)
@@ -212,36 +216,41 @@ for iConnMeas = 1: length(connMeas)
         %     low_evidence = stats.(fBand).padj >= 0.05;
         
         ax = nexttile(tcl);
-        imagesc(stats.(fBand).tval,'AlphaData',or(isnan(stats.(fBand).tval),low_evidence)*0.2);
+        imagesc(stats.(fBand).tval,'AlphaData',0.2,[cmin cmax]);
+        colormap(ax,cmap);
         hold on
-        imagesc(stats.(fBand).tval,'AlphaData',high_evidence_cc);
-        colormap([1 1 1; parula(255)]);
+        imagesc(stats.(fBand).tval,'AlphaData',high_evidence_cc, [cmin cmax]);
         hold off
-        
-        %     % Plot bayes factors - I don't like this option because you don't
-        %     see the direction of the effect
-        %     high_evidence = or(stats.(fBand).bf >= 30, stats.(fBand).bf <= 1/30);
-        %     low_evidence = and(stats.(fBand).bf > 1/30, stats.(fBand).bf < 30);
-        %     ax = nexttile(tcl);
-        %     imagesc(log(stats.(fBand).bf),'AlphaData',or(isnan(stats.(fBand).bf),low_evidence)*0.1);
-        %     hold on
-        %     imagesc(log(stats.(fBand).bf),'AlphaData',high_evidence);
-        %     caxis([log(1/30) log(30)])
-        %     colormap([1 1 1; parula(255)]);
-        %     hold off
-        
+        % Set to white the upper triangular matrix
+        ax2 = copyobj(ax,ax.Parent);
+        im = imagesc(ax2,ones(size(stats.(fBand).tval))*100,'AlphaData',triu(ones(size(stats.(fBand).tval)))); 
+        colormap(ax2,white);
+        set(ax2,'Color','none');
+        % Plot grid and network labels
         set(ax,'XTick',axistickslabelpos,'XtickLabel',[],'YTick',axistickslabelpos,'YtickLabel',[],'TickLength',[0 0],'TickDir','out','box','off')
         if iBand ==3
             set(ax,'XtickLabel',networks,'XtickLabelRotation',45,'YtickLabel',networks)
         end
-        grid on
-        set(ax,'GridColor','w','GridAlpha',0.5,'Layer','top');
-        ax2 = copyobj(ax,ax.Parent);
+        grid(ax2,'on');
+        set(ax2,'GridColor','w','GridAlpha',1,'Layer','top');
         set(ax2,'Ytick',axisticks','Xtick',axisticks,'yticklabel',[],'xticklabel',[]);
-        colorbar;
+        set(ax2,'TickLength',[0 0],'TickDir','out','box','off')
+        
+%         colorbar;
+        title(fBand);
     end
+    title(tcl,meas);
+
     saveas(fig,[meas '_conn_bf.svg']);
 end
+% Generate colorbar
+f = figure('Units','centimeters','Position',[0 0 3 4]);
+colormap(cmap)
+ax = axes;
+c = colorbar(ax,'Location','eastoutside');
+caxis([cmin cmax]);
+ax.Visible = 'off';
+saveas(f,'colorbar.svg');
 %% GRAPH MEASURES
 graph_path = fullfile(study_path, 'EEG_features','graph_measures');
 
@@ -364,37 +373,43 @@ for iConnMeas = 1: length(connMeas)
     save(['data_' meas '_graph.mat'],'data');
 end
 %% Raincloud plots - global measures
+colours = repmat(lines(2), [1 1 4]);
 
 for iConnMeas = 1: length(connMeas)
     meas = connMeas{iConnMeas};
     datafile = ['data_' meas '_graph.mat'];
     load(datafile);
     
-    colours = lines(2);
     f = figure('Units','centimeters','Position', [0 0 18 5]);
     tlc = tiledlayout(1,3,'Padding','compact');
     ax = nexttile;
-    rm_raincloud(data.gcc,colours,1);
+%     rm_raincloud(data.gcc,colours,1);
+    rm_raincloud_cg(data.gcc,'colours',colours,'bandwidth',[],'plot_median_lines',false,...
+        'line_width',1,'raindrop_size',10,'opacity',0.4);
     box off
     ax.Color = 'none';
     title('Global cc');
     set(ax,'YTickLabel',flip(freqBands));
     ax = nexttile;
-    rm_raincloud(data.geff,colours,1);
+%     rm_raincloud(data.geff,colours,1);
+    rm_raincloud_cg(data.geff,'colours',colours,'bandwidth',[],'plot_median_lines',false,...
+        'line_width',1,'raindrop_size',10,'opacity',0.4);
     title('Global efficiency');
     set(ax,'YTickLabel',flip(freqBands));
     box off
     ax.Color = 'none';
     ax = nexttile;
-    rm_raincloud(data.s,colours,1);
+%     rm_raincloud(data.s,colours,1);
+    rm_raincloud_cg(data.s,'colours',colours,'bandwidth',[],'plot_median_lines',false,...
+        'line_width',1,'raindrop_size',10,'opacity',0.4);
     title('Global smallworldness');
     set(ax,'YTickLabel',flip(freqBands));
     box off
     ax.Color = 'none';
     % fake legend
-    h(1) = scatter(nan,nan,10,colours(1,:),'filled');
+    h(1) = scatter(nan,nan,10,colours(1,:,1),'filled');
     hold on
-    h(2) = scatter(nan,nan,10,colours(2,:),'filled');
+    h(2) = scatter(nan,nan,10,colours(2,:,1),'filled');
     legend(h,'young','old');
     saveas(f,[meas '_graph_global.svg']);
 end
@@ -417,14 +432,14 @@ for iConnMeas = 1: length(connMeas)
     
     f_degree = figure('Units','centimeters','Position',[0 0 10 9]);
     f_cc = figure('Units','centimeters','Position',[0 0 10 9]);
-    tlc_degree = tiledlayout(f_degree,2,2,'TileSpacing','none','Padding','none');
-    tlc_cc = tiledlayout(f_cc,2,2,'TileSpacing','none','Padding','none');
+    tlc_degree = tiledlayout(f_degree,2,2,'TileSpacing','none','Padding','compact');
+    tlc_cc = tiledlayout(f_cc,2,2,'TileSpacing','none','Padding','compact');
     
     for iBand=1:length(freqBands)
         
         fBand = freqBands{iBand};
-        cmin = -6;
-        cmax = 6;
+        cmin = -4;
+        cmax = 4;
         
         % Bayesian statistics
         high_evidence_degree = or(stats.(fBand).degree.bf >= 30, stats.(fBand).degree.bf <= 1/30);
@@ -436,22 +451,24 @@ for iConnMeas = 1: length(connMeas)
         
         % Plot t-values color coded, only high evidence/significant values
         % Degree
-        index = fix((stats.(fBand).degree.tval-cmin)/(cmax-cmin)*256)+1;
-        rgb = squeeze(ind2rgb(index,parula(256)));
+        index = fix((stats.(fBand).degree.tval-cmin)/(cmax-cmin)*length(cmap))+1;
+        rgb = squeeze(ind2rgb(index,cmap));
         ax1 = nexttile(tlc_degree);
-        ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv','facealpha',0.1);
-        ft_plot_mesh(sourcemodel_atlas.pos(high_evidence_degree,:), 'vertexsize',10, 'vertexcolor',rgb(high_evidence_degree,:));
+        ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv','facealpha',0.2);
+        ft_plot_mesh(sourcemodel_atlas.pos(high_evidence_degree,:), 'vertexsize',12, 'vertexcolor',rgb(high_evidence_degree,:));
         ax1.CLim = [cmin cmax];
-        colormap(ax1,parula);
-        
+        colormap(ax1,cmap);
+        title(fBand);
+       
         % Global clustering coefficient
-        index = fix((stats.(fBand).cc.tval-cmin)/(cmax-cmin)*256)+1;
-        rgb = squeeze(ind2rgb(index,parula(256)));
+        index = fix((stats.(fBand).cc.tval-cmin)/(cmax-cmin)*length(cmap))+1;
+        rgb = squeeze(ind2rgb(index,cmap));
         ax2 = nexttile(tlc_cc);
-        ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv','facealpha',0.1);
-        ft_plot_mesh(sourcemodel_atlas.pos(high_evidence_cc,:), 'vertexsize',10, 'vertexcolor',rgb(high_evidence_cc,:));
+        ft_plot_mesh(surf, 'edgecolor', 'none', 'vertexcolor', 'curv','facealpha',0.2);
+        ft_plot_mesh(sourcemodel_atlas.pos(high_evidence_cc,:), 'vertexsize',12, 'vertexcolor',rgb(high_evidence_cc,:));
         ax2.CLim = [cmin cmax];
-        colormap(ax2,parula);
+        colormap(ax2,cmap);
+        title(fBand);
     end
     colorbar(ax1);
     colorbar(ax2);

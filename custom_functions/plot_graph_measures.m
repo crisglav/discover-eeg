@@ -6,8 +6,8 @@ spider = nan(length(freqNames),length(graphMeas));
 
 f_degree = figure('Units','centimeters','Position',[0 0 10 9], 'visible', 'on');
 f_cc = figure('Units','centimeters','Position',[0 0 10 9], 'visible', 'on');
-t_degree = tiledlayout(f_degree,2,2,'TileSpacing','compact','Padding','none');
-t_cc = tiledlayout(f_cc,2,2,'TileSpacing','compact','Padding','none');
+t_degree = tiledlayout(f_degree,2,2,'TileSpacing','none','Padding','compact');
+t_cc = tiledlayout(f_cc,2,2,'TileSpacing','none','Padding','compact');
 
 % Load surface structure
 surf = ft_read_headshape('surface_white_both.mat');
@@ -70,8 +70,8 @@ for iFreq=1:length(freqNames)
     end   
 end
 
-title(t_degree,{connMeasure,'Degree'});
-title(t_cc,{connMeasure, 'Clust. coef.'});
+% title(t_degree,{connMeasure,'Degree'});
+% title(t_cc,{connMeasure, 'Clust. coef.'});
 % Set colormap and color limits for all subplots
 set(ax_d, 'Colormap', parula, 'CLim', [cmin_d cmax_d])
 set(ax_c, 'Colormap', parula, 'CLim', [cmin_c cmax_c])
