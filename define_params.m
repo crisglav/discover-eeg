@@ -8,7 +8,7 @@ function params = define_params()
 params.study = 'CP-CGX';
 
 % The path of your raw data in BIDS format
-params.raw_data_path = '/rechenmagd4/Experiments/2022_chronic_pain_CGX/cpCGX_BIDS/';
+params.raw_data_path = '/rechenmagd4/Experiments/2022_chronic_pain_CGX/cpCGX_BIDS';
 
 % The path of the output of the pipeline (preprocessed data and extracted
 % brain features). By default is stored in a created 'derivatives' folder.
@@ -36,6 +36,7 @@ ft_defaults
 addpath(params.bct_path);
 addpath(fullfile('custom_functions'));
 addpath(genpath(fullfile('external_functions')));
+addpath(pwd)
 %% PREPROCESSING PARAMETERS
 % ===== Electrode positions =====
 % Parameter to select electrode positions from the BIDS sidecar file (default 'off')
@@ -131,7 +132,7 @@ params.freq_band.gamma = [30+params.freq_res 80];
 % Head model (default 'standard_bem.mat')
 params.volpath = fullfile(params.fieldtrip_path,'template','headmodel','standard_bem.mat');
 % Atlas positions (default 100 source positions based on the Schaefer atlas)
-params.atlaspath = fullfile('parcellations','Schaefer2018_100Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
+params.atlaspath = fullfile(pwd,'parcellations','Schaefer2018_100Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv');
 % Brain surface model for plotting (default 'surface_white_both.mat')
 params.surf = fullfile(params.fieldtrip_path,'template','anatomy','surface_white_both.mat');
 
