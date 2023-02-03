@@ -25,4 +25,9 @@ save(fullfile(params.power_folder,[bidsID '_peakfrequency.mat']),'peakfrequency'
 pf_fig = plot_peakfrequency(params,bidsID);
 saveas(pf_fig,fullfile(params.power_folder,[bidsID '_peakfrequency.svg']));
 close(pf_fig)
+
+% Plotting power
+[power_fig, topoplot_fig] = plot_power(params,bidsID);
+saveas(power_fig,fullfile(params.power_folder,[bidsID '_power.svg']));
+saveas(topoplot_fig,fullfile(params.power_folder,[bidsID '_power_topoplots.svg']));
 end
