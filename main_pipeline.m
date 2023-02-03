@@ -21,7 +21,8 @@ if exist(fullfile(params.preprocessed_data_path,[params.study '.study']),'file')
 else
     % Import raw data in BIDS format
     [STUDY, ALLEEG] = pop_importbids(params.raw_data_path,'outputdir',params.preprocessed_data_path,...
-        'studyName',params.study,'bidstask',params.task,'bidschanloc',params.bidschanloc,'bidsevent','off');
+        'studyName',params.study,'sessions',params.session,'bidstask',params.task,...
+        'bidschanloc',params.bidschanloc,'bidsevent','off');
     
     for iRec=1:length(ALLEEG)
         % Retrieve data

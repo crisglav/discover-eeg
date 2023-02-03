@@ -17,7 +17,7 @@ params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' 
 
 % Parameters to select a specific task and session.
 params.session = {'baseline'}; % For all sessions: {} / for a specific session e.g. {'baseline'}
-params.task =  'closed'; % For all tasks: [] / for a specific task e.g. 'closed'
+params.task =  'closed'; % For all tasks: [] / for a specific tas
 
 % EEGLab path
 params.eeglab_path = '/rechenmagd4/toolboxes_and_functions/eeglab';
@@ -45,7 +45,7 @@ addpath(pwd)
 % you can set this paramter to 'on' and the positions of the '*_electrodes.tsv' file will be used.
 % Please if set to 'on', specify also the coordinate system of the recorded
 % '*_electrodes.tsv' in params.nosedir
-params.bidschanloc = 'off'; 
+params.bidschanloc = 'on'; 
 if strcmp(params.bidschanloc,'on')
     params.nosedir = '+Y'; % 'RAS'
     % Note: Be careful with the orientation of the electrodes. If the coordinate system of the '*_electrodes.tsv'
@@ -79,7 +79,7 @@ params.FuseChanRej = 'off'; % If 'on' reject the union of bad channels detected 
 % electrode after rereferencing to the average reference. In that case add
 % also the coordinates of the reference channel in the same same coordinate system as electrodes.tsv or in the
 % MNI system depending on th params.bidschanloc
-params.addRefChannel = 'off';
+params.addRefChannel = 'on';
 if strcmp(params.addRefChannel,'on')
     % Coordinates of the reference electrode X, Y, Z in the same coordinate system as electrodes.tsv
     params.RefCoord.X = 0.3761; 
