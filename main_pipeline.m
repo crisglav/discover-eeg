@@ -109,7 +109,7 @@ for iRec=first:length(ALLEEG)
     
     % 3. REREFERENCE TO AVERAGE REFERENCE
     if strcmp(params.addRefChannel,'on')
-        EEGtemp = pop_reref(EEGtemp,[],'interpchan',[],'refloc', ALLEEG(iRec).chaninfo.nodatchans);
+        EEGtemp = pop_reref(EEGtemp,[],'interpchan',[],'refloc', EEGtemp.chaninfo.nodatchans);
     else
         EEGtemp = pop_reref(EEGtemp,[],'interpchan',[]);
     end

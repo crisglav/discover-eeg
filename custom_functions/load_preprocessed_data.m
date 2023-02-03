@@ -3,11 +3,11 @@ function data = load_preprocessed_data(params,bidsID)
     % Load data
     if contains(bidsID,'_')
         x = strsplit(bidsID,'_');
-        x = x{1};
+        sub = x{1};
     else
-        x = bidsID;
+        sub = bidsID;
     end
-    datapath = fullfile(params.preprocessed_data_path,x,'eeg',[bidsID '_eeg.set']);
+    datapath = fullfile(params.preprocessed_data_path,sub,'eeg',[bidsID '_eeg.set']);
     
     hdr = ft_read_header(datapath); % all the bids information is contained in the header of the original file
     cfg = [];
@@ -37,29 +37,35 @@ function data = load_preprocessed_data(params,bidsID)
 %         ft_plot_sens(data.elec,'style','r','label','label','elec','true','elecshape','disc','elecsize',5,'facecolor','r');
 %         view(90,0);
         
-        elec = ft_read_sens(fullfile(params.raw_data_path,x{:},'eeg',[x{:} '_electrodes.tsv']));
+        elec = ft_read_sens(fullfile(params.raw_data_path,sub,'eeg',[sub '_electrodes.tsv']));
         channels = ismember(elec.label,data.label);
-        
-        % Check whether there are channels not present in the tsv file
-        c = setdiff(data.label,elec.label);
-        if ~isempty(c)
-            c = sprintf('%s ', c{:});
-            warning(['The position of the channel(s) ' c ' was not found in ' x{:} '_electrodes.tsv']);
-        end
         
         c = setdiff(elec.label,data.label);
         if ~isempty(c)
             c = sprintf('%s ', c{:});
-            warning(['Channels(s) ' c ' are not present in the data and will be discarded']);
+            warning(['Channels(s) ' c 'are not present in the data and will be discarded']);
         end
         
-        elec.chanpos = elec.chanpos(channels,:);
-        elec.chantype = elec.chantype(channels,:);
-        elec.chanunit = elec.chanunit(channels,:);
-        elec.elecpos = elec.elecpos(channels,:);
-        elec.label = elec.label(channels,:);
-        elec.type = 'custom';
-        elec.unit = elec.unit;
+        data.elec.chanpos(channels,:) = elec.chanpos(channels,:);
+        data.elec.chantype(channels,:) = elec.chantype(channels,:);
+        data.elec.chanunit(channels,:) = elec.chanunit(channels,:);
+        data.elec.elecpos(channels,:) = elec.elecpos(channels,:);
+        data.elec.label(channels,:) = elec.label(channels,:);
+        data.elec.type = 'custom';
+        data.elec.unit = elec.unit;
+        
+        
+        % Check whether there are channels not present in the tsv file
+        c = setdiff(data.label,elec.label);
+        if ~isempty(c)
+            warning(['The position of the channel(s) ' sprintf('%s ', c{:}) 'was not found in ' sub '_electrodes.tsv']);            
+        end
+        if ismember(c,hdr.orig.ref)
+            warning(['Adding the position of the reference ' hdr.orig.ref ' manually, based on define_params.m']);
+            ref = ismember(data.label,hdr.orig.ref);
+            data.elec.chanpos(ref,:) = [params.RefCoord.X, params.RefCoord.Y, params.RefCoord.Z];
+            data.elec.elecpos(ref,:) = [params.RefCoord.X, params.RefCoord.Y, params.RefCoord.Z];
+        end
         
     else    
         % Take the coordinates from the mni template
@@ -99,12 +105,12 @@ function data = load_preprocessed_data(params,bidsID)
         elec.type = 'custom';
         elec.unit = elec_template.unit;
         
-    end
-    
-    if isequal(data.label,elec.label)
-        data.elec = elec;
-    else
-        warning('data.label is not equal to elec.label')
+        if isequal(data.label,elec.label)
+            data.elec = elec;
+        else
+            warning('data.label is not equal to elec.label')
+        end
+        
     end
     
 end
