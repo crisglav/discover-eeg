@@ -1,13 +1,19 @@
 function data = load_preprocessed_data(params,bidsID)
     
     % Load data
+    ses ='';
     if contains(bidsID,'_')
-        x = strsplit(bidsID,'_');
-        sub = x{1};
+        bidsparts = strsplit(bidsID,'_');
+        sub = bidsparts{1};
+        ses_mask = cellfun(@(x) contains(x, 'ses-'), bidsparts);
+        if any(ses_mask)
+            ses = bidsparts{ses_mask};
+        end
     else
         sub = bidsID;
     end
-    datapath = fullfile(params.preprocessed_data_path,sub,'eeg',[bidsID '_eeg.set']);
+    
+    datapath = fullfile(params.preprocessed_data_path,sub,ses,'eeg',[bidsID '_eeg.set']);
     
     hdr = ft_read_header(datapath); % all the bids information is contained in the header of the original file
     cfg = [];
@@ -36,8 +42,11 @@ function data = load_preprocessed_data(params,bidsID)
 %         hold on;
 %         ft_plot_sens(data.elec,'style','r','label','label','elec','true','elecshape','disc','elecsize',5,'facecolor','r');
 %         view(90,0);
-        
-        elec = ft_read_sens(fullfile(params.raw_data_path,sub,'eeg',[sub '_electrodes.tsv']));
+        if ~isempty(ses)
+            elec = ft_read_sens(fullfile(params.raw_data_path,sub,ses,'eeg',[sub '_' ses '_electrodes.tsv']));
+        else
+            elec = ft_read_sens(fullfile(params.raw_data_path,sub,'eeg',[sub '_electrodes.tsv']));
+        end
         channels = ismember(elec.label,data.label);
         
         c = setdiff(elec.label,data.label);
