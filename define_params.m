@@ -15,8 +15,9 @@ params.raw_data_path = '/rechenmagd4/Experiments/2023_1overf/data/Henrik';
 t = datestr(now,'yyyy_mm_dd');
 params.preprocessed_data_path = fullfile(params.raw_data_path, ['derivatives_v' t]);
 
-% Parameters to select a specific task and session.
+% Parameters to select a specific task,run and and session.
 params.session = {'baseline'}; % For all sessions: {} / for a specific session e.g. {'baseline'}
+params.runs = [];
 params.task =  'closed'; % For all tasks: [] / for a specific task e.g. 'closed'
 
 % EEGLab path
