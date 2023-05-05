@@ -7,11 +7,11 @@ clear all; close all;
 rng('default'); % For reproducibility - See discussion in https://sccn.ucsd.edu/pipermail/eeglablist/2022/016932.html
 
 % Define the parameters
-params = define_params();
+params = define_params([]);
  
-% if(isempty(gcp('nocreate')))
-%     parObj = parpool();
-% end
+if(isempty(gcp('nocreate')))
+    parObj = parpool();
+end
 
 %% ======= IMPORT RAW DATA =========
 % Try to load the already created study, otherwise import raw data with pop_importbids
@@ -143,7 +143,7 @@ for iRec=first:length(ALLEEG)
         
         % 6. REMOVE BAD TIME SEGMENTS
         EEGtemp_dirty{iRep} = EEGtemp;
-        EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion','off',...
+        EEGtemp = pop_clean_rawdata(EEGtemp,'FlatLineCriterion','off',...
             'ChannelCriterion','off',...
             'LineNoiseCriterion','off',...
             'Highpass','off',...
@@ -335,15 +335,15 @@ for iRec=1:length(STUDY.datasetinfo)
         end
     end
     
-    % Generate individual recording reports with figures
-    if ~exist(fullfile(params.ReportsPath,[bidsID '_report.pdf']),'file')
-        try
-            recording_report(params,bidsID);
-        catch ME
-            warning([bidsID ' - ' ME.message]);
-        end
-        
-    end
+%     % Generate individual recording reports with figures
+%     if ~exist(fullfile(params.ReportsPath,[bidsID '_report.pdf']),'file')
+%         try
+%             recording_report(params,bidsID);
+%         catch ME
+%             warning([bidsID ' - ' ME.message]);
+%         end
+%         
+%     end
     
 delete(fullfile(params.PreprocessedDataPath,bidsID,'eeg',[bidsID '_eeg.mat']));
 end
