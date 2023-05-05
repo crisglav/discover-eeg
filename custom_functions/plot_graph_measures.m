@@ -1,6 +1,6 @@
 function [f_degree, f_cc, f_global] = plot_graph_measures(params,bidsID,connMeasure)
 
-freqNames = fields(params.freq_band)';
+freqNames = fields(params.FreqBand)';
 graphMeas = {'gcc','geff','smallworldness'};
 spider = nan(length(freqNames),length(graphMeas));
 
@@ -13,7 +13,7 @@ t_cc = tiledlayout(f_cc,2,2,'TileSpacing','none','Padding','compact');
 surf = ft_read_headshape('surface_white_both.mat');
 
 % Load atlas positions
-atlas = readtable(params.atlaspath);
+atlas = readtable(params.AtlasPath);
 % Source model: centroid positons from Schaefer atlas
 cfg = [];
 cfg.method = 'basedonpos';
@@ -31,7 +31,7 @@ cmin_c = 0;
 for iFreq=1:length(freqNames)
     
     % Load graph measures
-    load(fullfile(params.graph_folder,[bidsID '_graph_' connMeasure '_' freqNames{iFreq} '.mat']),'graph_measures');
+    load(fullfile(params.GraphPath,[bidsID '_graph_' connMeasure '_' freqNames{iFreq} '.mat']),'graph_measures');
     
     % Plot degree at the 100 sources    
     % Interpolate colormap to correct range

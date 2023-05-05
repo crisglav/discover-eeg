@@ -1,6 +1,6 @@
 function compute_graph_measures(params,bidsID,freqBand,connMeasure)
 try
-    load(fullfile(params.connectivity_folder,[bidsID '_' connMeasure '_' freqBand '.mat']),'connMatrix');
+    load(fullfile(params.ConnectivityPath,[bidsID '_' connMeasure '_' freqBand '.mat']),'connMatrix');
 catch
     error(['Connectivity matrix '  bidsID '_' connMeasure '_' freqBand ' could not be loaded']);
 end
@@ -8,7 +8,7 @@ end
 % Threshold the connectivity matrix depending on the desired amount of edges
 sortedValues = sort(abs(connMatrix(:)),'descend');
 sortedValues = sortedValues(~isnan(sortedValues));
-threshold = sortedValues(floor(params.connMatrix_threshold*length(sortedValues)));
+threshold = sortedValues(floor(params.ConnMatrixThreshold*length(sortedValues)));
 
 % Binarize connectivity matrix based on the threshold (adjacency matrix)
 adjacency_matrix = abs(connMatrix) >= threshold;
@@ -45,6 +45,6 @@ graph_measures.cc = cc;
 graph_measures.gcc = gcc;
 graph_measures.geff = geff;
 graph_measures.smallworldness = smallworldness;
-save(fullfile(params.graph_folder,[bidsID '_graph_' connMeasure '_' freqBand '.mat']),'graph_measures')
+save(fullfile(params.GraphPath,[bidsID '_graph_' connMeasure '_' freqBand '.mat']),'graph_measures')
      
 end

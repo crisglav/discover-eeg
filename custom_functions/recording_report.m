@@ -4,7 +4,7 @@ import mlreportgen.report.*
 import mlreportgen.dom.*
 
 f = strcat(bidsID, '_report');
-rpt = Report(fullfile(params.reports_folder, f), 'pdf');
+rpt = Report(fullfile(params.ReportsPath, f), 'pdf');
 
 % Title page
 tp = TitlePage;
@@ -28,7 +28,7 @@ sec2.Title = 'ICA. Independent component classification';
 append(ch1,sec2);
 para = Paragraph('Artefactual independent components were detected automatically with ICLabel. By default, components whose probability of being ''Muscle'' or ''Eye'' is higher than 80% are marked as artifactual and substracted from the data.');
 append(sec2,para);
-para = Paragraph(['In the current run, the threshold used was ' num2str(params.IClabel(2,1)*100, '%d') '% for ''Muscle'' and ' num2str(params.IClabel(3,1)*100, '%d') '% for ''Eye'' components.']);
+para = Paragraph(['In the current run, the threshold used was ' num2str(params.ICLabel(2,1)*100, '%d') '% for ''Muscle'' and ' num2str(params.ICLabel(3,1)*100, '%d') '% for ''Eye'' components.']);
 append(sec2,para);
 [IC_plot, ic_kept] = plot_ICs_singlestudy(params, bidsID);
 add(sec2, Figure(IC_plot));

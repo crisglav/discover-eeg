@@ -64,9 +64,9 @@ xlabel('Recording ID');
 ylabel('Length of the recording (minutes)');
 legend({'Good','Bad'},'Location','southeast');
 title('Segmentation of the data after bad segment removal');
-saveas(f,fullfile(params.figures_preprocessing_folder, 'BadSegments.svg'),'svg');
-savefig(f,fullfile(params.figures_preprocessing_folder, 'BadSegments.fig'));
-save(fullfile(params.figures_preprocessing_folder, 'BadSegments.mat'),'segs','s_ids');
+saveas(f,fullfile(params.FiguresPreprocessingPath, 'BadSegments.svg'),'svg');
+% savefig(f,fullfile(params.FiguresPreprocessingPath, 'BadSegments.fig'));
+save(fullfile(params.FiguresPreprocessingPath, 'BadSegments.mat'),'segs','s_ids');
 
 end
 

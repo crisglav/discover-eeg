@@ -8,21 +8,20 @@ rng('default'); % For reproducibility - See discussion in https://sccn.ucsd.edu/
 
 % Define the parameters
 params = define_params();
-save(fullfile(params.preprocessed_data_path,'pipeline_params.mat'),'params');
  
-if(isempty(gcp('nocreate')))
-    parObj = parpool();
-end
+% if(isempty(gcp('nocreate')))
+%     parObj = parpool();
+% end
 
 %% ======= IMPORT RAW DATA =========
 % Try to load the already created study, otherwise import raw data with pop_importbids
-if exist(fullfile(params.preprocessed_data_path,[params.study '.study']),'file')
-    [STUDY, ALLEEG] = pop_loadstudy('filename', [params.study '.study'], 'filepath', params.preprocessed_data_path);
+if exist(fullfile(params.PreprocessedDataPath,[params.StudyName '.study']),'file')
+    [STUDY, ALLEEG] = pop_loadstudy('filename', [params.StudyName '.study'], 'filepath', params.PreprocessedDataPath);
 else
     % Import raw data in BIDS format
-    [STUDY, ALLEEG] = pop_importbids(params.raw_data_path,'outputdir',params.preprocessed_data_path,...
-        'studyName',params.study,'sessions',params.session,'runs',params.runs,'bidstask',params.task,...
-        'bidschanloc',params.bidschanloc,'bidsevent','off');
+    [STUDY, ALLEEG] = pop_importbids(params.RawDataPath,'outputdir',params.PreprocessedDataPath,...
+        'studyName',params.StudyName,'sessions',params.Session,'runs',params.Run,'bidstask',params.Task,...
+        'bidschanloc',params.BidsChanloc,'bidsevent','off');
     
     for iRec=1:length(ALLEEG)
         % Retrieve data
@@ -37,10 +36,10 @@ else
             'setref',{['1:' num2str(EEGtemp.nbchan)],ALLEEG(iRec).BIDS.tInfo.EEGReference});
         
         % Use electrode positions from the electrodes.tsv file or from a standard template in the MNI coordinate system
-        if strcmp(params.bidschanloc, 'on')
+        if strcmp(params.BidsChanloc, 'on')
             % If electrode positions are chosen from the .tsv the coordinate
-            % system might need to be adjusted (user has to define it in define_params.m)
-            EEGtemp = pop_chanedit(EEGtemp, 'nosedir',params.nosedir);
+            % system might need to be adjusted (user has to define it in params.json)
+            EEGtemp = pop_chanedit(EEGtemp, 'nosedir',params.NoseDir);
             eegchans = find(contains(lower({ALLEEG(iRec).chanlocs.type}),'eeg'));
         else
             % Look for electrode positions in a standard template
@@ -62,7 +61,7 @@ else
         EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
         EEGtemp.data = 'in set file';
         ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
-        STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.study, 'filepath', params.preprocessed_data_path);
+        STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.StudyName, 'filepath', params.PreprocessedDataPath);
         
     end
 end
@@ -82,7 +81,7 @@ for iRec=first:length(ALLEEG)
     EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata');
     
     % OPTIONAL. DOWNSAMPLE DATA
-    EEGtemp = pop_resample(EEGtemp, params.sampling_rate);
+    EEGtemp = pop_resample(EEGtemp, params.DownsamplingRate);
     
     % 1. CLEAN LINE NOISE
     try
@@ -93,10 +92,10 @@ for iRec=first:length(ALLEEG)
     
     % 2. REMOVE BAD CHANNELS
     [EEGtemp.urchanlocs] = deal(EEGtemp.chanlocs); % Keep original channels
-    EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion', params.FlatlineCriterion,...
+    EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion', params.FlatLineCriterion,...
                                 'ChannelCriterion',params.ChannelCriterion,...
                                 'LineNoiseCriterion',params.LineNoiseCriterion,...
-                                'Highpass',params.Highpass,...
+                                'Highpass',params.HighPass,...
                                 'FuseChanRej',params.FuseChanRej,... 
                                 'BurstCriterion','off',...
                                 'WindowCriterion','off',...
@@ -108,7 +107,7 @@ for iRec=first:length(ALLEEG)
     end
     
     % 3. REREFERENCE TO AVERAGE REFERENCE
-    if strcmp(params.addRefChannel,'on')
+    if strcmp(params.AddRefChannel,'on')
         EEGtemp = pop_reref(EEGtemp,[],'interpchan',[],'refloc', EEGtemp.chaninfo.nodatchans);
     else
         EEGtemp = pop_reref(EEGtemp,[],'interpchan',[]);
@@ -121,21 +120,23 @@ for iRec=first:length(ALLEEG)
     EEGOrig = EEGtemp;
     nRep = 10;
     EEGtemp_clean = cell(1,nRep);
+    params_ICLabel = params.ICLabel;
     parfor iRep =1:nRep
         EEGtemp = EEGOrig;
         % 4. REMOVE ARTIFACTS WITH ICA
         EEGtemp = pop_runica(EEGtemp,'icatype','runica','concatcond','off');
         EEGtemp = pop_iclabel(EEGtemp,'default');
-        EEGtemp = pop_icflag(EEGtemp, params.IClabel); % flag artifactual components using IClabel
+        EEGtemp = pop_icflag(EEGtemp, params_ICLabel); % flag artifactual components using IClabel
         classifications = EEGtemp.etc.ic_classification.ICLabel.classifications; % Keep classifications before component substraction
         EEGtemp = pop_subcomp(EEGtemp,[],0); % Subtract artifactual independent components
         EEGtemp.etc.ic_classification.ICLabel.orig_classifications = classifications;
         
         % 5. INTERPOLATE MISSING CHANNELS
         urchanlocs = EEGtemp.urchanlocs;
+        l = length(urchanlocs);
         [~, iref] = setdiff({EEGtemp.chanlocs.labels},{EEGtemp.urchanlocs.labels}); % Handle reference in case it was added back
         if ~isempty(iref)
-            urchanlocs(end+1) = EEGtemp.chanlocs(iref);
+            urchanlocs(l+1) = EEGtemp.chanlocs(iref);
         end
         EEGtemp = pop_interp(EEGtemp, urchanlocs, 'spherical');
         
@@ -172,9 +173,9 @@ for iRec=first:length(ALLEEG)
     % Create markers each x seconds and add them at the end of existing event markers
     try
         % Create spatially distributed markers
-        EEGtemp = eeg_regepochs(EEGtemp,'recurrence',params.epoch_length * (1-params.epoch_overlap),'eventtype','epoch_start','extractepochs','off');
+        EEGtemp = eeg_regepochs(EEGtemp,'recurrence',params.EpochLength * (1-params.EpochOverlap),'eventtype','epoch_start','extractepochs','off');
         % Segment the data into epochs
-        EEGtemp = pop_epoch(EEGtemp,{'epoch_start'},[0 params.epoch_length],'epochinfo','yes'); % epoch latencies are lost in this step
+        EEGtemp = pop_epoch(EEGtemp,{'epoch_start'},[0 params.EpochLength],'epochinfo','yes'); % epoch latencies are lost in this step
         % Mark recordings without any trial left to remove later on
         if EEGtemp.trials == 0, to_delete{end +1} = EEGtemp.filename; end
     catch ME
@@ -188,7 +189,7 @@ for iRec=first:length(ALLEEG)
     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
     EEGtemp.data = 'in set file';
     ALLEEG = eeg_store(ALLEEG, EEGtemp, iRec);
-    STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.study, 'filepath', params.preprocessed_data_path);
+    STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.StudyName, 'filepath', params.PreprocessedDataPath);
 
 end
 
@@ -212,23 +213,23 @@ mask = matches(STUDY.subject,s);
 STUDY.subject(mask) = [];
 
 % Save study
-STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.study '-clean'], 'filepath', params.preprocessed_data_path);
+STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.StudyName '-clean'], 'filepath', params.PreprocessedDataPath);
 
 clear EEGtemp ALLEEG;
 
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-% params = define_params();
-% [STUDY, ~] = pop_loadstudy('filename', [params.study '-clean.study'], 'filepath', params.preprocessed_data_path);
+% params = define_params('/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-mini-8min-bids/derivatives_v2023_05_05/params.json');
+% [STUDY, ~] = pop_loadstudy('filename', [params.StudyName '-clean.study'], 'filepath', params.PreprocessedDataPath);
 %%
 % % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
 % % electrodes are aligned with the head model)
-% plot_electrodesandsources(params,'sub-001_task-EC')
+% plot_electrodesandsources(params,'sub-010002')
 % 
 % % OPTIONAL -  Visualization of atlas regions by network
 % plot_atlasregions(params);
-freqs = fields(params.freq_band);
+freqs = fields(params.FreqBand);
 conMeas = {'dwpli','aec'};
 for iRec=1:length(STUDY.datasetinfo)
     
@@ -237,12 +238,12 @@ for iRec=1:length(STUDY.datasetinfo)
     bidsID = x{1,1};
 
     % 1. POWER (ELECTRODE SPACE)
-    if ~exist(fullfile(params.power_folder,[bidsID '_power.mat']),'file')
+    if ~exist(fullfile(params.PowerPath,[bidsID '_power.mat']),'file')
         compute_power(params,bidsID);
     end
     
     % 2. PEAK FREQUENCY (ELECTRODE SPACE)
-    if ~exist(fullfile(params.power_folder,[bidsID '_peakfrequency.mat']),'file')
+    if ~exist(fullfile(params.PowerPath,[bidsID '_peakfrequency.mat']),'file')
         compute_peakfrequency(params,bidsID);
     end    
     
@@ -250,12 +251,12 @@ for iRec=1:length(STUDY.datasetinfo)
     for iFreq = 1:length(freqs)
         
         % 3. SOURCE RECONSTRUCTION (power at source space)
-        if ~exist(fullfile(params.source_folder,[bidsID '_source_' freqs{iFreq} '.mat']),'file')
+        if ~exist(fullfile(params.SourcePath,[bidsID '_source_' freqs{iFreq} '.mat']),'file')
             compute_spatial_filter(params,bidsID,freqs{iFreq});
         end
         
         % 4.A FUNCTIONAL CONNECTIVITY - dwPLI
-        if ~exist(fullfile(params.connectivity_folder,[bidsID '_dwpli_' freqs{iFreq} '.mat']),'file')
+        if ~exist(fullfile(params.ConnectivityPath,[bidsID '_dwpli_' freqs{iFreq} '.mat']),'file')
             try
                 compute_dwpli(params,bidsID,freqs{iFreq});
             catch ME
@@ -265,7 +266,7 @@ for iRec=1:length(STUDY.datasetinfo)
         end
        
         % 4.B FUNCTIONAL CONNECTIVITY - AEC
-        if ~exist(fullfile(params.connectivity_folder,[bidsID '_aec_' freqs{iFreq} '.mat']),'file')
+        if ~exist(fullfile(params.ConnectivityPath,[bidsID '_aec_' freqs{iFreq} '.mat']),'file')
             try
                 compute_aec(params,bidsID,freqs{iFreq});
             catch ME
@@ -275,7 +276,7 @@ for iRec=1:length(STUDY.datasetinfo)
         end
         
         % 5. NETWORK CHARACTERIZATION (GRAPH MEASURES)
-        if ~exist(fullfile(params.graph_folder,[bidsID '_graph_dwpli_' freqs{iFreq} '.mat']),'file')
+        if ~exist(fullfile(params.GraphPath,[bidsID '_graph_dwpli_' freqs{iFreq} '.mat']),'file')
             try
                 compute_graph_measures(params,bidsID,freqs{iFreq},'dwpli');
             catch ME
@@ -283,7 +284,7 @@ for iRec=1:length(STUDY.datasetinfo)
                 continue;
             end
         end
-        if ~exist(fullfile(params.graph_folder,[bidsID '_graph_aec_' freqs{iFreq} '.mat']),'file')
+        if ~exist(fullfile(params.GraphPath,[bidsID '_graph_aec_' freqs{iFreq} '.mat']),'file')
             try
                 compute_graph_measures(params,bidsID,freqs{iFreq},'aec');
             catch ME
@@ -296,18 +297,18 @@ for iRec=1:length(STUDY.datasetinfo)
     
     % PLOTTING
     % Plot source power in all frequency bands
-    if ~exist(fullfile(params.source_folder,[bidsID '_source.svg']),'file')
+    if ~exist(fullfile(params.SourcePath,[bidsID '_source.svg']),'file')
         fig = plot_power_source(params,bidsID);
-        saveas(fig,fullfile(params.source_folder,[bidsID '_source.svg']));
+        saveas(fig,fullfile(params.SourcePath,[bidsID '_source.svg']));
         close(fig);
     end
     
     for iConMeas = 1:length(conMeas)
         % Plot connectivity matrices in all frequency bands and save them in connectivity folder
-        if ~exist(fullfile(params.connectivity_folder,[bidsID '_' conMeas{iConMeas} '.svg']),'file')
+        if ~exist(fullfile(params.ConnectivityPath,[bidsID '_' conMeas{iConMeas} '.svg']),'file')
             try
                 fig = plot_connectivity(params,bidsID,conMeas{iConMeas});
-                saveas(fig,fullfile(params.connectivity_folder,[bidsID '_' conMeas{iConMeas} '.svg']));
+                saveas(fig,fullfile(params.ConnectivityPath,[bidsID '_' conMeas{iConMeas} '.svg']));
                 close(fig);
             catch ME
                 warning([bidsID ' - ' ME.message]);
@@ -316,15 +317,17 @@ for iRec=1:length(STUDY.datasetinfo)
 
         
         % Plot graph measures in all frequency bands and save them in the graph measures folder
-        if ~exist(fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_degree.svg']),'file') ||...
-                ~exist(fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_cc.svg']),'file') ||...
-                ~exist(fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_global.svg']),'file')
+        if ~exist(fullfile(params.GraphPath,[bidsID '_' conMeas{iConMeas} '_degree.svg']),'file') ||...
+                ~exist(fullfile(params.GraphPath,[bidsID '_' conMeas{iConMeas} '_cc.svg']),'file') ||...
+                ~exist(fullfile(params.GraphPath,[bidsID '_' conMeas{iConMeas} '_global.svg']),'file')
             try
                 [f_degree, f_cc, f_global] = plot_graph_measures(params,bidsID,conMeas{iConMeas});
-                saveas(f_degree,fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_degree.svg']));
-                saveas(f_cc,fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_cc.svg']));
-                saveas(f_global,fullfile(params.graph_folder,[bidsID '_' conMeas{iConMeas} '_global.svg']));
-                close(f_degree, f_cc, f_global);
+                saveas(f_degree,fullfile(params.GraphPath,[bidsID '_' conMeas{iConMeas} '_degree.svg']));
+                close(f_degree);
+                saveas(f_cc,fullfile(params.GraphPath,[bidsID '_' conMeas{iConMeas} '_cc.svg']));
+                close(f_cc);
+                saveas(f_global,fullfile(params.GraphPath,[bidsID '_' conMeas{iConMeas} '_global.svg']));
+                close(f_global);
             catch ME
                 warning([bidsID ' - ' ME.message]);
             end
@@ -333,7 +336,7 @@ for iRec=1:length(STUDY.datasetinfo)
     end
     
     % Generate individual recording reports with figures
-    if ~exist(fullfile(params.reports_folder,[bidsID '_report.pdf']),'file')
+    if ~exist(fullfile(params.ReportsPath,[bidsID '_report.pdf']),'file')
         try
             recording_report(params,bidsID);
         catch ME
@@ -341,6 +344,8 @@ for iRec=1:length(STUDY.datasetinfo)
         end
         
     end
+    
+delete(fullfile(params.PreprocessedDataPath,bidsID,'eeg',[bidsID '_eeg.mat']));
 end
 
 

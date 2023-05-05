@@ -4,19 +4,19 @@ data = load_preprocessed_data(params,bidsID);
 
 %% Source model 
 % Source model: centroid positons from Schaefer atlas
-atlas400 = readtable(params.atlaspath);
+atlas400 = readtable(params.AtlasPath);
 cfg = [];
 cfg.method = 'basedonpos';
 cfg.sourcemodel.pos = [atlas400.R, atlas400.A, atlas400.S];
 cfg.unit = 'mm';
-cfg.headmodel = params.volpath;
+cfg.headmodel = params.HeadModelPath;
 sourcemodel_atlas = ft_prepare_sourcemodel(cfg);
 sourcemodel_atlas.coordsys = 'mni';
 
 %% Bandpass the data in the relevant frequency band
 cfg = [];
 cfg.bpfilter = 'yes';
-cfg.bpfreq = params.freq_band.(freqBand);
+cfg.bpfreq = params.FreqBand.(freqBand);
 data = ft_preprocessing(cfg, data);
 
 %% Compute the covariance matrix from the data
@@ -36,7 +36,7 @@ tlock = ft_timelockanalysis(cfg,data);
 % Forward model (leadfield)
 cfg = [];
 cfg.sourcemodel = sourcemodel_atlas;
-cfg.headmodel = params.volpath;
+cfg.headmodel = params.HeadModelPath;
 cfg.normalize = 'yes';
 lf = ft_prepare_leadfield(cfg, data);
 
@@ -53,7 +53,7 @@ cfg.lcmv.weightnorm = 'arraygain';
 cfg.sourcemodel = lf;
 source = ft_sourceanalysis(cfg, tlock);
 
-save(fullfile(params.source_folder,[bidsID '_source_' freqBand '.mat']),'source')
+save(fullfile(params.SourcePath,[bidsID '_source_' freqBand '.mat']),'source')
 
 % Plot source power
 % surf = ft_read_headshape('surface_white_both.mat');

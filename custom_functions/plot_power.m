@@ -1,13 +1,13 @@
 function [power_fig, topoplot_fig] = plot_power(params,bidsID)
 
 % Load pre-computed power and peak frequency
-load(fullfile(params.power_folder,[bidsID '_power.mat']),'power');
-load(fullfile(params.power_folder,[bidsID '_peakfrequency.mat']),'peakfrequency')
+load(fullfile(params.PowerPath,[bidsID '_power.mat']),'power');
+load(fullfile(params.PowerPath,[bidsID '_peakfrequency.mat']),'peakfrequency')
 
 % Average power across channels
 avgpow = mean(power.powspctrm,1);
 
-freqNames = fields(params.freq_band)';    
+freqNames = fields(params.FreqBand)';    
 % Plot average power spectrum across channels
 power_fig = figure('Units','centimeters','Position', [0 0 12 7],'Visible','off');
 ax1 = axes(power_fig);
@@ -16,7 +16,7 @@ hold on
 % Color the different frequency bands
 c = lines(length(freqNames));
 for iFreq =1:length(freqNames)
-    freqRange = find(power.freq >= params.freq_band.(freqNames{iFreq})(1) & power.freq <= params.freq_band.(freqNames{iFreq})(2));
+    freqRange = find(power.freq >= params.FreqBand.(freqNames{iFreq})(1) & power.freq <= params.FreqBand.(freqNames{iFreq})(2));
     a(iFreq) = area(power.freq(freqRange),avgpow(freqRange),'FaceColor',c(iFreq,:),'DisplayName',freqNames{iFreq}); % Color the area
     hold on;
 end
@@ -46,7 +46,7 @@ tcl.TileSpacing = 'compact';
 tcl.Padding = 'compact';
 for iFreq=1:length(freqNames)
     cfg = [];
-    cfg.xlim = params.freq_band.(freqNames{iFreq});
+    cfg.xlim = params.FreqBand.(freqNames{iFreq});
 %     cfg.marker = 'labels'; % Uncomment if you want the electrode names
     cfg.comment = 'no';
     ft_topoplotER(cfg,power)

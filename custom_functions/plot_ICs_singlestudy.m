@@ -5,7 +5,7 @@ if contains(bidsID,'_')
 else
     x = bidsID;
 end
-datapath = fullfile(params.preprocessed_data_path,x,'eeg',[bidsID '_eeg.set']);
+datapath = fullfile(params.PreprocessedDataPath,x,'eeg',[bidsID '_eeg.set']);
 
 % Read header file
 hdr = ft_read_header(datapath);
@@ -20,14 +20,14 @@ end
 
 % Only select the classes that have been marked in params.IClabel (default muscle and eye ICs)
 classes = etc.ic_classification.ICLabel.classes;
-mask_classes = all(~isnan(params.IClabel),2);
+mask_classes = all(~isnan(params.ICLabel),2);
 
 % IClabel classifications
 classifications = etc.ic_classification.ICLabel.orig_classifications;
 
 % Extract the number of bad ICs of each category for all subjects (ICs
 % marked bad if they lie between the values of params.IClabel)
-badics = sum((classifications(:,2:end) > params.IClabel(2:end,1)').*(classifications(:,2:end) < params.IClabel(2:end,2)'));
+badics = sum((classifications(:,2:end) > params.ICLabel(2:end,1)').*(classifications(:,2:end) < params.ICLabel(2:end,2)'));
 
 goodics = nChans - sum(badchans) - sum(badics);
 ics = [goodics, badics(mask_classes(2:end)), sum(badchans)];
@@ -38,8 +38,8 @@ c(end,:) = [1 1 1]; % Bad channels to white
 l = ['Kept ICs',classes(mask_classes), 'Bad chan']; % Legend
 
 % Deal with the case in which all components that weren't brain were rejected
-if all(~isnan(params.IClabel(1,:)))
-    nonbrain_ICs = sum((classifications(:,1) > params.IClabel(1,1)).*(classifications(:,1) < params.IClabel(1,2)));
+if all(~isnan(params.ICLabel(1,:)))
+    nonbrain_ICs = sum((classifications(:,1) > params.ICLabel(1,1)).*(classifications(:,1) < params.ICLabel(1,2)));
     goodics =  nChans - sum(badchans) - nonbrain_ICs;
     ics = [goodics, nonbrain_ICs, sum(badchans)];
     c = lines(1);

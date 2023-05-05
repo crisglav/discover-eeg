@@ -6,13 +6,13 @@ data = load_preprocessed_data(params,bidsID);
 cfg = [];
 cfg.foilim = [1 100];
 cfg.method = 'mtmfft';
-cfg.taper = params.taper;
-cfg.tapsmofrq = params.tapsmofrq;
+cfg.taper = params.Taper;
+cfg.tapsmofrq = params.Tapsmofrq;
 cfg.pad = 5;
 cfg.padtype = 'zero';
 cfg.output = 'pow';
 cfg.keeptrials ='no';
 power = ft_freqanalysis(cfg, data);
 
-save(fullfile(params.power_folder,[bidsID '_power.mat']),'power')
+save(fullfile(params.PowerPath,[bidsID '_power.mat']),'power')
 end

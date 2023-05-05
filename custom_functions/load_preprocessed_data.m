@@ -1,5 +1,8 @@
 function data = load_preprocessed_data(params,bidsID)
-    
+if exist(fullfile(params.PreprocessedDataPath,bidsID,'eeg',[bidsID '_eeg.mat']),'file')
+    load(fullfile(params.PreprocessedDataPath,bidsID,'eeg',[bidsID '_eeg.mat']),'data');
+else
+
     % Load data
     ses ='';
     if contains(bidsID,'_')
@@ -13,7 +16,7 @@ function data = load_preprocessed_data(params,bidsID)
         sub = bidsID;
     end
     
-    datapath = fullfile(params.preprocessed_data_path,sub,ses,'eeg',[bidsID '_eeg.set']);
+    datapath = fullfile(params.PreprocessedDataPath,sub,ses,'eeg',[bidsID '_eeg.set']);
     
     hdr = ft_read_header(datapath); % all the bids information is contained in the header of the original file
     cfg = [];
@@ -21,7 +24,7 @@ function data = load_preprocessed_data(params,bidsID)
     data = ft_preprocessing(cfg);
     
     % Using electrode positions from electrodes.tsv
-    if strcmp(params.bidschanloc,'on')
+    if strcmp(params.BidsChanloc,'on')
           % Coordinates taken from the .set file are not aligned with mni template!! 
 %         % Coordinate system of eelgab has to be defined manually
 %         data.elec.coordsys = 'ctf';
@@ -36,16 +39,16 @@ function data = load_preprocessed_data(params,bidsID)
 %         % Overlay electrode positions from EEGLab with the head model -> not
 %         % properly aligned. It is better to define the electrode positions
 %         % directly from the aligned template (see below)
-%         load(params.volpath,'vol');
+%         load(params.HeadModelPath,'vol');
 %         figure;
 %         ft_plot_headmodel(vol,'facealpha',0.1,'facecolor',[0.1 0.1 0.1],'edgecolor',[1 1 1],'edgealpha',0.5);
 %         hold on;
 %         ft_plot_sens(data.elec,'style','r','label','label','elec','true','elecshape','disc','elecsize',5,'facecolor','r');
 %         view(90,0);
         if ~isempty(ses)
-            elec = ft_read_sens(fullfile(params.raw_data_path,sub,ses,'eeg',[sub '_' ses '_electrodes.tsv']));
+            elec = ft_read_sens(fullfile(params.RawDataPath,sub,ses,'eeg',[sub '_' ses '_electrodes.tsv']));
         else
-            elec = ft_read_sens(fullfile(params.raw_data_path,sub,'eeg',[sub '_electrodes.tsv']));
+            elec = ft_read_sens(fullfile(params.RawDataPath,sub,'eeg',[sub '_electrodes.tsv']));
         end
         channels = ismember(elec.label,data.label);
         
@@ -121,5 +124,7 @@ function data = load_preprocessed_data(params,bidsID)
         end
         
     end
-    
+
+    save(fullfile(params.PreprocessedDataPath,bidsID,'eeg',[bidsID '_eeg.mat']));
+end
 end

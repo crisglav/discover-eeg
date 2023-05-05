@@ -44,8 +44,8 @@ h = heatmap(s_ids,chanlabels,badchans,'CellLabelColor','none','Colormap',cmap,'C
 h.Title = 'Bad channels';
 % h.XLabel = 'Recording ID';
 h.YLabel = 'Channels';
-saveas(f,fullfile(params.figures_preprocessing_folder, 'badchans.svg'),'svg');
-savefig(f,fullfile(params.figures_preprocessing_folder, 'badchans.fig'));
-save(fullfile(params.figures_preprocessing_folder, 'badchans.mat'),'badchans','s_ids','chanlabels');
+saveas(f,fullfile(params.FiguresPreprocessingPath, 'badchans.svg'),'svg');
+% savefig(f,fullfile(params.FiguresPreprocessingPath, 'badchans.fig'));
+save(fullfile(params.FiguresPreprocessingPath, 'badchans.mat'),'badchans','s_ids','chanlabels');
 end
 

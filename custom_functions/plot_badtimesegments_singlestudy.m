@@ -5,7 +5,7 @@ if contains(bidsID,'_')
 else
     x = bidsID;
 end
-datapath = fullfile(params.preprocessed_data_path,x,'eeg',[bidsID '_eeg.set']);
+datapath = fullfile(params.PreprocessedDataPath,x,'eeg',[bidsID '_eeg.set']);
 
 % Read header file
 hdr = ft_read_header(datapath);

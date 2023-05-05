@@ -1,17 +1,17 @@
 function fig = plot_power_source(params,bidsID)
 
-freqNames = fields(params.freq_band)';    
+freqNames = fields(params.FreqBand)';    
 
 fig = figure('Units','centimeters','Position', [0 0 10 10],'Visible','on');
 tcl = tiledlayout(2,2,'TileSpacing','compact','Padding','none');
 
 % Load surface structure
-surf = ft_read_headshape(params.surf);
+surf = ft_read_headshape(params.SurfaceModelPath);
 
 for iFreq=1:length(freqNames)
         
     % Load source file
-    load(fullfile(params.source_folder,[bidsID '_source_' freqNames{iFreq} '.mat']),'source');
+    load(fullfile(params.SourcePath,[bidsID '_source_' freqNames{iFreq} '.mat']),'source');
     
     % Interpolate power to the surface cortex
     cfg = [];

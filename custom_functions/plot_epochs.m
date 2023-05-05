@@ -27,8 +27,8 @@ set(gca,'xticklabel',s_ids(1:2:nRec),'xticklabelrotation',45)
 xlabel('Recording ID');
 ylabel('Number of clean epochs');
 title('Number of epochs after preprocessing');
-saveas(f,fullfile(params.figures_preprocessing_folder, 'Epochs.svg'),'svg');
-savefig(f,fullfile(params.figures_preprocessing_folder, 'Epochs.fig'));
-save(fullfile(params.figures_preprocessing_folder, 'Epochs.mat'),'nepochs');
+saveas(f,fullfile(params.FiguresPreprocessingPath, 'Epochs.svg'),'svg');
+% savefig(f,fullfile(params.FiguresPreprocessingPath, 'Epochs.fig'));
+save(fullfile(params.FiguresPreprocessingPath, 'Epochs.mat'),'nepochs');
 
 end

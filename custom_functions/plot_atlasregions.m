@@ -1,16 +1,16 @@
 function plot_atlasregions(params)
 % Source model: centroid positons from Schaefer atlas
-atlas400 = readtable(params.atlaspath);
+atlas = readtable(params.AtlasPath);
 cfg = [];
 cfg.method = 'basedonpos';
-cfg.sourcemodel.pos = [atlas400.R, atlas400.A, atlas400.S];
+cfg.sourcemodel.pos = [atlas.R, atlas.A, atlas.S];
 cfg.unit = 'mm';
-cfg.headmodel = params.volpath;
+cfg.headmodel = params.HeadModelPath;
 sourcemodel_atlas = ft_prepare_sourcemodel(cfg);
 sourcemodel_atlas.coordsys = 'mni';
 
 % Volume conduction model
-load(params.volpath,'vol');
+load(params.HeadModelPath,'vol');
 
 % Points by network
 networks = {'Vis','SomMot','DorsAttn','SalVentAttn','Limbic','Cont','Default'};
@@ -19,7 +19,7 @@ f = figure('Position',[651 613 972 684]);
 ft_plot_mesh(vol.bnd(3),'facealpha',0.1,'facecolor',[0.1 0.1 0.1],'edgecolor',[1 1 1],'edgealpha',0.5); % brain
 for i=1:length(networks)
     hold on
-    idx  = find(cellfun(@(x) contains(x,['_' networks{i} '_']), atlas400.ROIName));
+    idx  = find(cellfun(@(x) contains(x,['_' networks{i} '_']), atlas.ROIName));
     ft_plot_mesh(sourcemodel_atlas.pos(idx,:), 'vertexsize',15, 'vertexcolor',c(i,:));
     h(i) = scatter(NaN,NaN,10,c(i,:),'filled'); % dummy for legend
 end

@@ -1,9 +1,9 @@
 function fig = plot_connectivity(params,bidsID,connMeasure)
 
-freqNames = fields(params.freq_band)';    
+freqNames = fields(params.FreqBand)';    
 
 % Load atlas
-atlas = readtable(params.atlaspath);
+atlas = readtable(params.AtlasPath);
 % Points by network
 networks = {'Vis','SomMot','DorsAttn','SalVentAttn','Limbic','Cont','Default'};
 pos = cell(1,length(networks));
@@ -22,7 +22,7 @@ tcl = tiledlayout(2,2,'TileSpacing','compact','Padding','none');
 for iFreq=1:length(freqNames)
     try
         % Load connectivity matrices
-        load(fullfile(params.connectivity_folder,[bidsID '_' connMeasure '_' freqNames{iFreq} '.mat']),'connMatrix');
+        load(fullfile(params.ConnectivityPath,[bidsID '_' connMeasure '_' freqNames{iFreq} '.mat']),'connMatrix');
     catch
         error('Connectivity matrix could not be loaded');
     end

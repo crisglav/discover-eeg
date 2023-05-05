@@ -6,11 +6,11 @@ assert(size(data.trial,2)>=10, 'Recording with less than 10 epochs');
 % Band-pass filter the data in the relevant frequency band
 cfg = [];
 cfg.bpfilter = 'yes';
-cfg.bpfreq = params.freq_band.(freqBand);
+cfg.bpfreq = params.FreqBand.(freqBand);
 data = ft_preprocessing(cfg, data);
 
 % Load source reconstruction data
-load(fullfile(params.source_folder,[bidsID '_source_' freqBand '.mat']),'source');
+load(fullfile(params.SourcePath,[bidsID '_source_' freqBand '.mat']),'source');
 
 % Reconstruct the virtual time series (apply spatial filter to sensor level
 % data)
@@ -20,7 +20,7 @@ virtChan_data = ft_virtualchannel(cfg,data,source);
 clear data source;
 
 % Frequencies of interest
-fois = params.freq_band.(freqBand)(1):params.freq_res_connectivity:params.freq_band.(freqBand)(2);
+fois = params.FreqBand.(freqBand)(1):params.FreqResConnectivity:params.FreqBand.(freqBand)(2);
 
 tic
 % Fourier components
@@ -49,5 +49,5 @@ end
 t = toc;
 disp([bidsID '_', freqBand, ' computation took ', num2str(t/60), ' minutes'])
 
-save(fullfile(params.connectivity_folder,[bidsID '_dwpli_' freqBand '.mat']),'connMatrix')
+save(fullfile(params.ConnectivityPath,[bidsID '_dwpli_' freqBand '.mat']),'connMatrix')
 end
