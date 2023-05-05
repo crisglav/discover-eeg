@@ -2,7 +2,7 @@ function fig = plot_power_source(params,bidsID)
 
 freqNames = fields(params.FreqBand)';    
 
-fig = figure('Units','centimeters','Position', [0 0 10 10],'Visible','on');
+fig = figure('Units','centimeters','Position', [0 0 10 10],'Visible','off');
 tcl = tiledlayout(2,2,'TileSpacing','compact','Padding','none');
 
 % Load surface structure

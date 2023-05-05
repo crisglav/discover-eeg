@@ -4,8 +4,8 @@ freqNames = fields(params.FreqBand)';
 graphMeas = {'gcc','geff','smallworldness'};
 spider = nan(length(freqNames),length(graphMeas));
 
-f_degree = figure('Units','centimeters','Position',[0 0 10 9], 'visible', 'on');
-f_cc = figure('Units','centimeters','Position',[0 0 10 9], 'visible', 'on');
+f_degree = figure('Units','centimeters','Position',[0 0 10 9], 'visible', 'off');
+f_cc = figure('Units','centimeters','Position',[0 0 10 9], 'visible', 'off');
 t_degree = tiledlayout(f_degree,2,2,'TileSpacing','none','Padding','compact');
 t_cc = tiledlayout(f_cc,2,2,'TileSpacing','none','Padding','compact');
 
@@ -80,7 +80,7 @@ colorbar(ax_d(end),'eastoutside');
 colorbar(ax_c(end),'eastoutside');
 
 % Spider plot with global measures
-f_global = figure('Units','centimeters','Position', [0 0 12 8], 'visible', 'on');
+f_global = figure('Units','centimeters','Position', [0 0 12 8], 'visible', 'off');
 axeslim = [0, 0, min(spider(:,3)); 1, 1, max(spider(:,3))];
 spider_plot(spider,...
     'AxesLabels', {'Global clustering coef.','Global efficiency','Smallworldness'}, ...

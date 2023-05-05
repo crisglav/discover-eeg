@@ -23,7 +23,7 @@ s = s(2:end)-s(1:end-1);
 segs(1,1:length(s)) = s;
 segs = segs./(hdr.orig.srate*60); % Divide by sampling rate
 
-bs_plot = figure('Units','centimeters','Position', [0 0 18 2]);
+bs_plot = figure('Units','centimeters','Position', [0 0 18 2],'Visible','Off');
 b = barh(1, segs(1,:),'stacked','EdgeColor','none');
 set(b,'FaceColor','Flat');
 for k = 1:find((segs(1,:)~=0),1,'last')
@@ -42,7 +42,8 @@ title('Bad time segments');
 
 % Calculate bad segment time & percentage for the report
 bs_length = sum(~etc.clean_sample_mask)/hdr.orig.srate;
-recording_length = nSamples/hdr.orig.srate;
+recording_length = nSamples/hdr.orig.srate;            
+
 % bad_segs_index = ~mod(1:length(segs(1,:)), 2);
 % bad_segs = segs(1,bad_segs_index);
 % bs_secs = sum(bad_segs(1,:))*60;
