@@ -23,7 +23,7 @@ end
 % Convert '-Inf' to -Inf from params.json
 params.WindowCriterionTolerances{1,1} = eval(params.WindowCriterionTolerances{1,1});
 params.WindowCriterionTolerances{2,1} = eval(params.WindowCriterionTolerances{2,1});
-params.WindowCriterionTolerances = cell2mat(params.WindowCriterionTolerances);
+params.WindowCriterionTolerances = cell2mat(params.WindowCriterionTolerances');
 
 params.HighPass = params.HighPass';
 %% Add toolboxes and pipeline functions to matlab path
@@ -121,9 +121,10 @@ end
 
 %% Save params file to derivatives folder
 % Convert -Inf to '-Inf'
-params.WindowCriterionTolerances = arrayfun(@num2str,params.WindowCriterionTolerances,'UniformOutput',0);
+paramsOut = params;
+paramsOut.WindowCriterionTolerances = arrayfun(@num2str,params.WindowCriterionTolerances,'UniformOutput',0);
 jsonOutput = jsonencode(params);
-fid = fopen(fullfile(params.PreprocessedDataPath,'params.json'),'w');
+fid = fopen(fullfile(paramsOut.PreprocessedDataPath,'params.json'),'w');
 fprintf(fid,'%s',jsonOutput);
 fclose(fid);
 
