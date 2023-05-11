@@ -1,36 +1,16 @@
-function recording_report(params,bidsID)
+function pdf_report(params,bidsID)
 
-import mlreportgen.report.*
-import mlreportgen.dom.*
-
-f = strcat(bidsID, '_report');
-rpt = Report(fullfile(params.ReportsPath, f), 'pdf');
-
-% Title page
-tp = TitlePage;
-tp.Title = ['Report of ' bidsID];
-append(rpt,tp);
-
-%% Preprocessing report
-ch1 = Chapter;
-ch1.Title = 'Preprocessing report';
-
-sec1 = Section;
-sec1.Title = 'Bad channel rejection';
-append(ch1,sec1);
-para = Paragraph('Bad channels were automatically detected with clean_rawdata. By default flat channels, channels with high frequency noise and channels with poor predictability are rejected. In the following plot,  bad channels are marked in blue.');
+pdf_file = fullfile(params.ReportsPath,[bidsID '.pdf']);
+f = figure;
+tl = tiledlayout(3,1);
+nexttile
 bc_plot = plot_badchannels_singlestudy(params, bidsID);
-append(sec1,para);
-add(sec1, Figure(bc_plot));
 
-sec2 = Section;
-sec2.Title = 'ICA. Independent component classification';
-append(ch1,sec2);
-para = Paragraph('Artefactual independent components were detected automatically with ICLabel. By default, components whose probability of being ''Muscle'' or ''Eye'' is higher than 80% are marked as artifactual and substracted from the data.');
-append(sec2,para);
-para = Paragraph(['In the current run, the threshold used was ' num2str(params.ICLabel(2,1)*100, '%d') '% for ''Muscle'' and ' num2str(params.ICLabel(3,1)*100, '%d') '% for ''Eye'' components.']);
-append(sec2,para);
+
+exportgraphics(Figure(bc_plot),pdf_file,"Append",true);
+
 [IC_plot, ic_kept] = plot_ICs_singlestudy(params, bidsID);
+
 add(sec2, Figure(IC_plot));
 para = Paragraph([num2str(ic_kept*100, '%.2f') '% IC components were kept.']);
 append(sec2,para);

@@ -6,13 +6,12 @@
 clear all; close all;
 rng('default'); % For reproducibility - See discussion in https://sccn.ucsd.edu/pipermail/eeglablist/2022/016932.html
 
-% Define the parameters
-params = define_params([]);
- 
 if(isempty(gcp('nocreate')))
     parObj = parpool();
 end
 
+% Define the parameters
+params = define_params([]);
 %% ======= IMPORT RAW DATA =========
 % Try to load the already created study, otherwise import raw data with pop_importbids
 if exist(fullfile(params.PreprocessedDataPath,[params.StudyName '.study']),'file')
@@ -220,7 +219,7 @@ clear EEGtemp ALLEEG;
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-% params = define_params('/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-mini-8min-bids/derivatives_v2023_05_05/params.json');
+% params = define_params('/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-8min-bids/derivatives_v2023_05_07/params.json');
 % [STUDY, ~] = pop_loadstudy('filename', [params.StudyName '-clean.study'], 'filepath', params.PreprocessedDataPath);
 %%
 % % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
