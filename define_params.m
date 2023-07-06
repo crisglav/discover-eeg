@@ -5,7 +5,7 @@ function params = define_params(fname)
 
 %% Read json file with all the parameters
 if isempty(fname)
-    fname = 'params.json';
+    fname = 'params_example.json';
 end
 fid = fopen(fname);
 raw = fread(fid,inf);
