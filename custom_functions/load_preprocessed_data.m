@@ -125,6 +125,6 @@ else
         
     end
 
-    save(fullfile(params.PreprocessedDataPath,bidsID,'eeg',[bidsID '_eeg.mat']));
+    save(fullfile(params.PreprocessedDataPath,sub,ses,'eeg',[bidsID '_eeg.mat']));
 end
 end

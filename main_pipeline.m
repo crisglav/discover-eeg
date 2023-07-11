@@ -25,6 +25,7 @@ else
     for iRec=1:length(ALLEEG)
         % Retrieve data
         EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata');
+%         EEGtemp = pop_loadset('filename', ALLEEG(iRec).filename, 'filepath', ALLEEG(iRec).filepath, 'verbose', 'off');
         
         % Add reference electrode
         EEGtemp = pop_chanedit(EEGtemp, 'append',EEGtemp.nbchan, ...
@@ -344,7 +345,7 @@ for iRec=1:length(STUDY.datasetinfo)
 %         
 %     end
     
-delete(fullfile(params.PreprocessedDataPath,bidsID,'eeg',[bidsID '_eeg.mat']));
+    delete(fullfile(params.PreprocessedDataPath,bidsID,'eeg',[bidsID '_eeg.mat']));
 end
 
 
