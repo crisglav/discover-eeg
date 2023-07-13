@@ -91,19 +91,23 @@ for iRec=first:length(ALLEEG)
     end
     
     % 2. REMOVE BAD CHANNELS
-    [EEGtemp.urchanlocs] = deal(EEGtemp.chanlocs); % Keep original channels
-    EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion', params.FlatLineCriterion,...
-                                'ChannelCriterion',params.ChannelCriterion,...
-                                'LineNoiseCriterion',params.LineNoiseCriterion,...
-                                'Highpass',params.HighPass,...
-                                'FuseChanRej',params.FuseChanRej,... 
-                                'BurstCriterion','off',...
-                                'WindowCriterion','off',...
-                                'BurstRejection','off',...
-                                'Distance','Euclidian',...
-                                'WindowCriterionTolerances','off');
-    if(isfield(EEGtemp.etc,'clean_channel_mask'))
-        clean_channel_mask = EEGtemp.etc.clean_channel_mask;
+    try
+        [EEGtemp.urchanlocs] = deal(EEGtemp.chanlocs); % Keep original channels
+        EEGtemp = pop_clean_rawdata(EEGtemp,'FlatlineCriterion', params.FlatLineCriterion,...
+            'ChannelCriterion',params.ChannelCriterion,...
+            'LineNoiseCriterion',params.LineNoiseCriterion,...
+            'Highpass',params.HighPass,...
+            'FuseChanRej',params.FuseChanRej,...
+            'BurstCriterion','off',...
+            'WindowCriterion','off',...
+            'BurstRejection','off',...
+            'Distance','Euclidian',...
+            'WindowCriterionTolerances','off');
+        if(isfield(EEGtemp.etc,'clean_channel_mask'))
+            clean_channel_mask = EEGtemp.etc.clean_channel_mask;
+        end
+    catch ME
+        warning(['Remove bad channels not performed: ' ME.message]);
     end
     
     % 3. REREFERENCE TO AVERAGE REFERENCE
@@ -117,54 +121,59 @@ for iRec=first:length(ALLEEG)
     % small differences in the bad segment detection. We permorn 10 times
     % the ICA, interpolation of bad channels and bad segment detection and 
     % we select the run that is closer to the 'average' bad segment mask
-    EEGOrig = EEGtemp;
-    nRep = 10;
-    EEGtemp_clean = cell(1,nRep);
-    params_ICLabel = params.ICLabel;
-    parfor iRep =1:nRep
-        EEGtemp = EEGOrig;
-        % 4. REMOVE ARTIFACTS WITH ICA
-        EEGtemp = pop_runica(EEGtemp,'icatype','runica','concatcond','off');
-        EEGtemp = pop_iclabel(EEGtemp,'default');
-        EEGtemp = pop_icflag(EEGtemp, params_ICLabel); % flag artifactual components using IClabel
-        classifications = EEGtemp.etc.ic_classification.ICLabel.classifications; % Keep classifications before component substraction
-        EEGtemp = pop_subcomp(EEGtemp,[],0); % Subtract artifactual independent components
-        EEGtemp.etc.ic_classification.ICLabel.orig_classifications = classifications;
-        
-        % 5. INTERPOLATE MISSING CHANNELS
-        urchanlocs = EEGtemp.urchanlocs;
-        l = length(urchanlocs);
-        [~, iref] = setdiff({EEGtemp.chanlocs.labels},{EEGtemp.urchanlocs.labels}); % Handle reference in case it was added back
-        if ~isempty(iref)
-            urchanlocs(l+1) = EEGtemp.chanlocs(iref);
+    try
+        EEGOrig = EEGtemp;
+        nRep = 10;
+        EEGtemp_clean = cell(1,nRep);
+        params_ICLabel = params.ICLabel;
+        parfor iRep =1:nRep
+            EEGtemp = EEGOrig;
+            % 4. REMOVE ARTIFACTS WITH ICA
+            EEGtemp = pop_runica(EEGtemp,'icatype','runica','concatcond','off');
+            EEGtemp = pop_iclabel(EEGtemp,'default');
+            EEGtemp = pop_icflag(EEGtemp, params_ICLabel); % flag artifactual components using IClabel
+            classifications = EEGtemp.etc.ic_classification.ICLabel.classifications; % Keep classifications before component substraction
+            EEGtemp = pop_subcomp(EEGtemp,[],0); % Subtract artifactual independent components
+            EEGtemp.etc.ic_classification.ICLabel.orig_classifications = classifications;
+            
+            % 5. INTERPOLATE MISSING CHANNELS
+            urchanlocs = EEGtemp.urchanlocs;
+            l = length(urchanlocs);
+            [~, iref] = setdiff({EEGtemp.chanlocs.labels},{EEGtemp.urchanlocs.labels}); % Handle reference in case it was added back
+            if ~isempty(iref)
+                urchanlocs(l+1) = EEGtemp.chanlocs(iref);
+            end
+            EEGtemp = pop_interp(EEGtemp, urchanlocs, 'spherical');
+            
+            
+            % 6. REMOVE BAD TIME SEGMENTS
+            EEGtemp_dirty{iRep} = EEGtemp;
+            EEGtemp = pop_clean_rawdata(EEGtemp,'FlatLineCriterion','off',...
+                'ChannelCriterion','off',...
+                'LineNoiseCriterion','off',...
+                'Highpass','off',...
+                'BurstCriterion',params.BurstCriterion,...
+                'WindowCriterion',params.WindowCriterion,...
+                'BurstRejection','on',...
+                'Distance','Euclidian',...
+                'WindowCriterionTolerances',params.WindowCriterionTolerances);
+            EEGtemp.etc.eventsAfterCRD = EEGtemp.event; % Keep events for visualization later on.
+            EEGtemp_clean{iRep} = EEGtemp;
         end
-        EEGtemp = pop_interp(EEGtemp, urchanlocs, 'spherical');
         
-        
-        % 6. REMOVE BAD TIME SEGMENTS
-        EEGtemp_dirty{iRep} = EEGtemp;
-        EEGtemp = pop_clean_rawdata(EEGtemp,'FlatLineCriterion','off',...
-            'ChannelCriterion','off',...
-            'LineNoiseCriterion','off',...
-            'Highpass','off',...
-            'BurstCriterion',params.BurstCriterion,...
-            'WindowCriterion',params.WindowCriterion,...
-            'BurstRejection','on',...
-            'Distance','Euclidian',...
-            'WindowCriterionTolerances',params.WindowCriterionTolerances);
-        EEGtemp.etc.eventsAfterCRD = EEGtemp.event; % Keep events for visualization later on.       
-        EEGtemp_clean{iRep} = EEGtemp;
+        % Select the run closer to the 'average' bad time segments mask
+        etc = cellfun(@(x) x.etc, EEGtemp_clean, 'UniformOutput',0);
+        csm = cell2mat(cellfun(@(x) x.clean_sample_mask, etc, 'UniformOutput',0)');
+        csmAverage = mean(csm,1);
+        distToAvg = sum(abs(csm - csmAverage), 2);
+        [~,selRun] = min(distToAvg);
+        EEGtemp = EEGtemp_clean{selRun};
+        clear EEGtemp_clean
+    catch ME
+        warning(['ICA not performed: ' ME.message ' Recording will be removed.']);
+        to_delete{end +1} = EEGtemp.filename;
+        continue;
     end
-        
-    % Select the run closer to the 'average' bad time segments mask
-    etc = cellfun(@(x) x.etc, EEGtemp_clean, 'UniformOutput',0);
-    csm = cell2mat(cellfun(@(x) x.clean_sample_mask, etc, 'UniformOutput',0)');
-    csmAverage = mean(csm,1);
-    distToAvg = sum(abs(csm - csmAverage), 2);
-    [~,selRun] = min(distToAvg);
-    EEGtemp = EEGtemp_clean{selRun};
-    clear EEGtemp_clean
-    
     % 7. SEGMENT DATA INTO EPOCHS
     % EEGLab pop_epoch is designed to trim the data based on events. For
     % resting-state data, in which no events are defined, this function is
@@ -181,6 +190,7 @@ for iRec=first:length(ALLEEG)
     catch ME
         warning(['Data segmentation not performed: ' ME.message ' Probably no clean epochs remained. Recording will be removed.'])
         to_delete{end +1} = EEGtemp.filename;
+        continue;
     end
     
     
