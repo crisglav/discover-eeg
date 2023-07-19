@@ -6,12 +6,12 @@
 clear all; close all;
 rng('default'); % For reproducibility - See discussion in https://sccn.ucsd.edu/pipermail/eeglablist/2022/016932.html
 
-if(isempty(gcp('nocreate')))
-    parObj = parpool();
-end
-
 % Define the parameters
 params = define_params([]);
+
+if(isempty(gcp('nocreate')))
+    parObj = parpool(params.Ncores);
+end
 %% ======= IMPORT RAW DATA =========
 % Try to load the already created study, otherwise import raw data with pop_importbids
 if exist(fullfile(params.PreprocessedDataPath,[params.StudyName '.study']),'file')
@@ -71,11 +71,11 @@ end
 
 %% ======== PREPROCESSING =========
 % Find the latest preprocessed recording and start with the next one
-first = find(cellfun(@isempty, {ALLEEG.setname}),1);
+not_preprocessed = find(cellfun(@isempty, {ALLEEG.setname}));
 to_delete = {};
 
 % Loop over the recordings that have not been preprocessed
-for iRec=first:length(ALLEEG)
+for iRec = not_preprocessed
 
     % Retrieve data
     EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata');
@@ -230,8 +230,8 @@ clear EEGtemp ALLEEG;
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-% params = define_params('/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-8min-bids/derivatives_v2023_05_07/params.json');
-% [STUDY, ~] = pop_loadstudy('filename', [params.StudyName '-clean.study'], 'filepath', params.PreprocessedDataPath);
+% params = define_params('/rechenmagd3/Experiments/2021_preprocessing/datasets/vanDijk/derivatives_v2023_07_14/params.json');
+% [STUDY, ALLEEG] = pop_loadstudy('filename', [params.StudyName '-clean.study'], 'filepath', params.PreprocessedDataPath);
 %%
 % % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
 % % electrodes are aligned with the head model)
