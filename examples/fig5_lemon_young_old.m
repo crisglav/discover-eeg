@@ -1,8 +1,8 @@
 %% Comparison of EEG features between old and young groups on the LEMON dataset
 %
 % This script compares the EEG features obtained after applyting the
-% pipeline between old and young people on the LEMON dataset and generates
-% Figure 5 of the main manuscript.
+% pipeline between old and young people on the LEMON dataset eyes closed 
+% and generates Figure 5 of the manuscript.
 %
 % The bayesFactor package for Bayesian statistics testing 
 % and the Raincloud plots function need to be downloaded for statistical
@@ -15,26 +15,24 @@
 
 clear all;
 
-% Add EEGLab
+% Add toolboxes and functions
 eeglab_path = '/rechenmagd4/toolboxes_and_functions/eeglab';
 run(fullfile(eeglab_path,'eeglab.m'));
-% Add fieldtrip
 addpath /rechenmagd4/toolboxes_and_functions/fieldtrip
 ft_defaults
-% Add raincloud plots
-addpath /rechenmagd4/toolboxes_and_functions/plotting_functions/raincloudplots
-% Add fdr function
-addpath /rechenmagd4/toolboxes_and_functions/statistics_functions
-% Add Bayes Factor package
-run('/rechenmagd4/Experiments/2021_preprocessing/pipeline/external_functions/bayes_factor/installBayesFactor.m')
+addpath(genpath('../external_functions'));
+run('installBayesFactor.m')
+
+figures_path = '/rechenmagd3/Experiments/2021_preprocessing/figures';
+results_path = '/rechenmagd3/Experiments/2021_preprocessing/results';
 
 % Load atlas for plotting the connectivity matrices
 n_sources = 100;
-atlas_path = '/rechenmagd4/Experiments/2021_preprocessing/pipeline/parcellations/Schaefer2018_100Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv';
+atlas_path = '../parcellations/Schaefer2018_100Parcels_7Networks_order_FSLMNI152_1mm.Centroid_RAS.csv';
 atlas100 = readtable(atlas_path);
 
 %% Load study with clean data
-study_path = '/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-8min-bids/derivatives_v2022_12_14';
+study_path = '/rechenmagd3/Experiments/2021_preprocessing/datasets/LEMON-8min-closed-bids/derivatives_v2022_12_14';
 STUDY = pop_loadstudy('filename', 'LEMON-2s-clean.study', 'filepath', study_path);
 
 % Sort participants by age group
@@ -92,7 +90,7 @@ old_max = apf_max(mask_old);
 young_cog = apf_cog(mask_young);
 old_cog = apf_cog(mask_old);
 [bf_cog,p_cog] = bf.ttest2(old_cog,young_cog);
-save('stats_apf.mat','bf_max','p_localmax','bf_cog','p_cog');
+save(fullfile(results_path,'stats_lemon_young_old_apf.mat'),'bf_max','p_localmax','bf_cog','p_cog');
 
 %% APF - raincloudplots
 colours = lines(2);
@@ -116,7 +114,7 @@ h(1) = scatter(nan,nan,10,colours(1,:),'filled');
 hold on
 h(2) = scatter(nan,nan,10,colours(2,:),'filled');
 legend(h,'young','old');
-saveas(f,'apf_rainclouds.svg');
+saveas(f,fullfile(figures_path,'lemon_young_old_apf.svg'));
 
 %% CONNECTIVITY
 % Path to connectivity matrices
@@ -187,7 +185,7 @@ for iConnMeas = 1: length(connMeas)
         stats.(fBand).bf = b;
         
     end
-    save(['stats_' meas '_conn.mat'],'stats');
+    save(fullfile(results_path,['stats_lemon_young_old_conn_' meas '.mat']),'stats');
 end
 %% Connectivity - Plot t-values and Bayes factors
 cmap = turbo;
@@ -195,7 +193,7 @@ cmap = cmap(20:235,:); % limit the colormap so that it does not reach very dark 
 for iConnMeas = 1: length(connMeas)
     % Load stats file
     meas = connMeas{iConnMeas};
-    statsfile = ['stats_' meas '_conn.mat'];
+    statsfile = fullfile(results_path,['stats_lemon_young_old_conn_' meas '.mat']);
     load(statsfile);
     
     fig = figure('Units','centimeters','Position',[0 0 10 10], 'visible', 'on');
@@ -241,16 +239,16 @@ for iConnMeas = 1: length(connMeas)
     end
     title(tcl,meas);
 
-    saveas(fig,[meas '_conn_bf.svg']);
+    saveas(fig,fullfile(figures_path,['lemon_young_old_conn_' meas '.svg']));
 end
-% Generate colorbar
-f = figure('Units','centimeters','Position',[0 0 3 4]);
-colormap(cmap)
-ax = axes;
-c = colorbar(ax,'Location','eastoutside');
-caxis([cmin cmax]);
-ax.Visible = 'off';
-saveas(f,'colorbar.svg');
+% % Generate colorbar
+% f = figure('Units','centimeters','Position',[0 0 3 4]);
+% colormap(cmap)
+% ax = axes;
+% c = colorbar(ax,'Location','eastoutside');
+% caxis([cmin cmax]);
+% ax.Visible = 'off';
+% saveas(f,'colorbar.svg');
 %% GRAPH MEASURES
 graph_path = fullfile(study_path, 'EEG_features','graph_measures');
 
@@ -369,21 +367,20 @@ for iConnMeas = 1: length(connMeas)
         stats.(fBand).s.bf = b;
         
     end
-    save(['stats_' meas '_graph.mat'],'stats');
-    save(['data_' meas '_graph.mat'],'data');
+    save(fullfile(results_path,['stats_lemon_young_old_graph_' meas '.mat']),'stats');
+    save(fullfile(results_path,['data_lemon_young_old_graph_' meas '.mat']),'data');
 end
 %% Raincloud plots - global measures
 colours = repmat(lines(2), [1 1 4]);
 
 for iConnMeas = 1: length(connMeas)
     meas = connMeas{iConnMeas};
-    datafile = ['data_' meas '_graph.mat'];
+    datafile = fullfile(results_path,['data_lemon_young_old_graph_' meas '.mat']);
     load(datafile);
     
     f = figure('Units','centimeters','Position', [0 0 18 5]);
     tlc = tiledlayout(1,3,'Padding','compact');
     ax = nexttile;
-%     rm_raincloud(data.gcc,colours,1);
     rm_raincloud_cg(data.gcc,'colours',colours,'bandwidth',[],'plot_median_lines',false,...
         'line_width',1,'raindrop_size',10,'opacity',0.4);
     box off
@@ -391,7 +388,6 @@ for iConnMeas = 1: length(connMeas)
     title('Global cc');
     set(ax,'YTickLabel',flip(freqBands));
     ax = nexttile;
-%     rm_raincloud(data.geff,colours,1);
     rm_raincloud_cg(data.geff,'colours',colours,'bandwidth',[],'plot_median_lines',false,...
         'line_width',1,'raindrop_size',10,'opacity',0.4);
     title('Global efficiency');
@@ -399,7 +395,6 @@ for iConnMeas = 1: length(connMeas)
     box off
     ax.Color = 'none';
     ax = nexttile;
-%     rm_raincloud(data.s,colours,1);
     rm_raincloud_cg(data.s,'colours',colours,'bandwidth',[],'plot_median_lines',false,...
         'line_width',1,'raindrop_size',10,'opacity',0.4);
     title('Global smallworldness');
@@ -411,7 +406,7 @@ for iConnMeas = 1: length(connMeas)
     hold on
     h(2) = scatter(nan,nan,10,colours(2,:,1),'filled');
     legend(h,'young','old');
-    saveas(f,[meas '_graph_global.svg']);
+    saveas(f,fullfile(figures_path,['lemon_young_old_graph_global_ ' meas '.svg']));
 end
 %% Brain plots - local measures
 % Load surface structure
@@ -427,7 +422,7 @@ sourcemodel_atlas.coordsys = 'mni';
 for iConnMeas = 1: length(connMeas)
     
     meas = connMeas{iConnMeas};
-    statsfile = ['stats_' meas '_graph.mat'];
+    statsfile = fullfile(results_path,['stats_lemon_young_old_graph_' meas '.mat']);
     load(statsfile);
     
     f_degree = figure('Units','centimeters','Position',[0 0 10 9]);
@@ -472,13 +467,13 @@ for iConnMeas = 1: length(connMeas)
     end
     colorbar(ax1);
     colorbar(ax2);
-    saveas(f_degree,[meas '_graph_degree.bmp']);
-    saveas(f_cc,[meas '_graph_cc.bmp']);
+    saveas(f_degree,fullfile(figures_path,['lemon_young_old_graph_degree_ ' meas '.bmp']));
+    saveas(f_cc,fullfile(figures_path,['lemon_young_old_graph_cc_' meas '.bmp']));
 end
 %% colorbar figure
-f = figure('Units','centimeters','Position',[0 0 3 4]);
-ax = axes;
-c = colorbar(ax,'Location','southoutside');
-caxis([-4 4]);
-ax.Visible = 'off';
-saveas(f,'colorbar.svg');
+% f = figure('Units','centimeters','Position',[0 0 3 4]);
+% ax = axes;
+% c = colorbar(ax,'Location','southoutside');
+% caxis([-4 4]);
+% ax.Visible = 'off';
+% saveas(f,'colorbar.svg');
