@@ -25,7 +25,6 @@ else
     for iRec=1:length(ALLEEG)
         % Retrieve data
         EEGtemp = eeg_checkset(ALLEEG(iRec),'loaddata');
-%         EEGtemp = pop_loadset('filename', ALLEEG(iRec).filename, 'filepath', ALLEEG(iRec).filepath, 'verbose', 'off');
         
         % Add reference electrode
         EEGtemp = pop_chanedit(EEGtemp, 'append',EEGtemp.nbchan, ...
@@ -123,7 +122,7 @@ for iRec = not_preprocessed
     % we select the run that is closer to the 'average' bad segment mask
     try
         EEGOrig = EEGtemp;
-        nRep = 10;
+        nRep = params.NICARepetitions;
         EEGtemp_clean = cell(1,nRep);
         params_ICLabel = params.ICLabel;
         parfor iRep =1:nRep

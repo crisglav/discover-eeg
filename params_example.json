@@ -1,10 +1,13 @@
 {
+	"Ncores": 2,
+	"NICARepetitions": 10,
+
 	"EEGLabPath": "/rechenmagd4/toolboxes_and_functions/eeglab",
 	"FieldtripPath": "/rechenmagd4/toolboxes_and_functions/fieldtrip",
 	"BrainConnectivityToolboxPath" : "/rechenmagd4/toolboxes_and_functions/2019_03_03_BCT",
 
-	"StudyName": "LEMON-closed",
-	"RawDataPath": "/rechenmagd4/Experiments/2021_preprocessing/datasets/LEMON-8min-bids",
+	"StudyName": "ChronicPain",
+	"RawDataPath": "/rechenmagd3/Experiments/2021_preprocessing/datasets/TaDinh-mini",
 	"PreprocessedDataPath": [],
 	"Session" : [""],
 	"Run" : [],
