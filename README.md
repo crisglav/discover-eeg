@@ -51,10 +51,10 @@ Brain features in the source space are computed separately for four frequency ba
     * Change [EEGLab preferences](https://eeglab.org/tutorials/misc/EEGLAB_option_menu.html) in EEGLab GUI. Make sure that the box 'Keep at most one dataset in memory' is selected.
 * Download [FieldTrip](https://www.fieldtriptoolbox.org/download.php)
 * Download the [BCT toolbox](https://sites.google.com/site/bctnet/)
-* Update the path of the toolboxes in `define_params.json`
+* Update the path of the toolboxes in `params_example.json`
 
 ### Executing the pipeline
-* Read the `define_params.json` file and change the settings according to your needs. The minimum parameters that need to be specified are: 
+* Read the `params_example.json` file and change the settings according to your needs. The minimum parameters that need to be specified are: 
     * Your study name
     * The path to your BIDS raw data
 * Run `main_pipeline.m`
