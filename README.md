@@ -1,12 +1,12 @@
 # DISCOVER-EEG: an EEG pipeline for biomarker discovery 
 
-This is a workflow that automatically preprocess, analyzes and visualizes resting state EEG data in Matlab using EEGLab and FieldTrip toolboxes. It has been tested on the [LEMON dataset](https://openneuro.org/datasets/ds000221/versions/1.0.0) and the [Chronic Pain EEG dataset](https://osf.io/m45j2/).
+This is a workflow that automatically preprocess, analyzes and visualizes resting state EEG data in Matlab using EEGLab and FieldTrip toolboxes. It has been tested on the [LEMON dataset](https://www.nature.com/articles/sdata2018308), the [TD-BRAIN dataset](https://www.nature.com/articles/s41597-022-01409-z), and the [Chronic Pain EEG dataset](https://osf.io/m45j2/).
 
 ## Description
 ![pipeline](https://user-images.githubusercontent.com/18517243/212702747-f03f71de-aaf1-4ffb-81e0-963b8333e22b.jpg)
 
 ### Data
-The input data needs to be raw EEG data in BIDS format, please check that you comply with the standard with the [BIDS validator](https://bids-standard.github.io/bids-validator/). The output data are the preprocessed EEG data, the below mentioned EEG features, and a visualization of the results in form of a PDF report for each recording.
+The input data needs to be raw EEG data in BIDS format, please check that you comply with the standard with the [BIDS validator](https://bids-standard.github.io/bids-validator/). The output data are the preprocessed EEG data, the below-mentioned EEG features, and a visualization of the preprocessing steps and EEG features.
 
 ### Preprocessing
 0. Downsampling (optional)
@@ -22,10 +22,10 @@ The input data needs to be raw EEG data in BIDS format, please check that you co
 1. Power spectrum (sensor space)
 2. Alpha Peak Frequency (sensor space)
 3. Power topographies (source space)
-4. Functional connectivy (source space): phase-based (dwPLI) and amplitude-based (oAEC) 
+4. Functional connectivity (source space): phase-based (dwPLI) and amplitude-based (AEC) 
 5. Brain network characteristics (source space): two local graph theory measures (degree, clustering coefficient) and three global measures (global clustering coefficient, global efficiency, smallworldness).
 
-Brain features in the source space are computed separately for four frequency bands of interest (theta, alpha, beta and gamma). 
+Brain features in the source space are computed separately for four frequency bands of interest (theta, alpha, beta, and gamma). 
 
 ## Getting started
 ### Dependencies
@@ -43,22 +43,22 @@ Brain features in the source space are computed separately for four frequency ba
 
 ### Installation
 * Download the pipeline code [here](https://github.com/crisglav/eeg-pipeline)
-* Download Matlab and the above listed Matlab toolboxes
+* Download Matlab and the above-listed Matlab toolboxes
 * Download [EEGLab](https://sccn.ucsd.edu/eeglab/download.php)
     * Download the aforementioned EEGlab plugins via the EEGLab GUI or in the provided URL. If you choose the second option, add them to the eeglab/plugins folder. 
       Note that in eeglab/plugins there must not be a same-named subfolder for any plugin (e.g. eeglab/plugins/clean_rawdata-master/clean_rawdata is NOT correct;
       it should be eeglab/plugins/clean_rawdata).
-    * Change [EEGLab preferences](https://eeglab.org/tutorials/misc/EEGLAB_option_menu.html) in EEGLab GUI. Make sure that the box 'Keep at most one dataset in memmory' is selected.
+    * Change [EEGLab preferences](https://eeglab.org/tutorials/misc/EEGLAB_option_menu.html) in EEGLab GUI. Make sure that the box 'Keep at most one dataset in memory' is selected.
 * Download [FieldTrip](https://www.fieldtriptoolbox.org/download.php)
 * Download the [BCT toolbox](https://sites.google.com/site/bctnet/)
-* Update the path of the toolboxes in `define_params.m`
+* Update the path of the toolboxes in `define_params.json`
 
 ### Executing the pipeline
-* Read the `define_params.m` file and change the settings according to your needs. The minimum parameters that need to be specified are: 
-    * Your study name in `params.study`
-    * The path to your BIDS raw data in `params.raw_data_path`
+* Read the `define_params.json` file and change the settings according to your needs. The minimum parameters that need to be specified are: 
+    * Your study name
+    * The path to your BIDS raw data
 * Run `main_pipeline.m`
-* By default the output of the pipeline will be found in a subfolder of your raw data folder called 'derivatives_vYYYY_MM_DD'
+* By default, the output of the pipeline will be found in a subfolder of your raw data folder called 'derivatives_vYYYY_MM_DD'
 
 ## Authors
 Cristina Gil Ávila, cristina.gil@tum.de
