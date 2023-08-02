@@ -1,6 +1,7 @@
 # DISCOVER-EEG: an EEG pipeline for biomarker discovery 
-
 This is a workflow that automatically preprocess, analyzes and visualizes resting state EEG data in Matlab using EEGLab and FieldTrip toolboxes. It has been tested on the [LEMON dataset](https://www.nature.com/articles/sdata2018308), the [TD-BRAIN dataset](https://www.nature.com/articles/s41597-022-01409-z), and the [Chronic Pain EEG dataset](https://osf.io/m45j2/).
+
+[![DOI](https://zenodo.org/badge/518454921.svg)](https://zenodo.org/badge/latestdoi/518454921)
 
 ## Description
 ![pipeline](https://user-images.githubusercontent.com/18517243/212702747-f03f71de-aaf1-4ffb-81e0-963b8333e22b.jpg)
