@@ -1,6 +1,8 @@
 # DISCOVER-EEG: an EEG pipeline for biomarker discovery 
 This is a workflow that automatically preprocess, analyzes and visualizes resting state EEG data in Matlab using EEGLab and FieldTrip toolboxes. It has been tested on the [LEMON dataset](https://www.nature.com/articles/sdata2018308), the [TD-BRAIN dataset](https://www.nature.com/articles/s41597-022-01409-z), and the [Chronic Pain EEG dataset](https://osf.io/m45j2/).
 
+The acompany publication in Scientific Data can be found [here](https://www.nature.com/articles/s41597-023-02525-0).
+
 [![DOI](https://zenodo.org/badge/518454921.svg)](https://zenodo.org/badge/latestdoi/518454921)
 
 ## Description
@@ -30,7 +32,7 @@ Brain features in the source space are computed separately for four frequency ba
 
 ## Getting started
 ### Dependencies
-* Matlab with Signal Processing and Statistical and Machine Learning Toolboxes (Developed and tested on R2020b; also tested in R2022a)
+* Matlab with Signal Processing and Statistical Toolbox, Machine Learning Toolbox, and Parallel Computing Toolbox (optional). The code was developed and tested on Matlab R2020b, and also tested in R2022a.
 * EEGLab (Developed and tested with v2022.0) The following EEGlab plugins need to be installed:
     * [bids-matlb-tool](https://github.com/sccn/bids-matlab-tools) v6.1 
     * [bva-io](https://github.com/arnodelorme/bva-io) if your data is in BVA format v1.7
@@ -61,8 +63,12 @@ Brain features in the source space are computed separately for four frequency ba
 * Run `main_pipeline.m`
 * By default, the output of the pipeline will be found in a subfolder of your raw data folder called 'derivatives_vYYYY_MM_DD'
 
-## Authors
-Cristina Gil Ávila, cristina.gil@tum.de
+## Citation
+If you use this code in your project, please cite:
+
+Gil Ávila C, Bott FS, Tiemann L, Hohn VD, May ES, Nickel MM, Zebhauser PT, Gross J, Ploner P. DISCOVER-EEG: an open, fully automated EEG pipeline for biomarker discovery in clinical neuroscience. Sci Data 10, 613 (2023). doi:[10.1038/s41597-023-02525-0](https://doi.org/10.1038/s41597-023-02525-0)
+
+Additionally, to cite the specific version of DISCOVER-EEG used in your analyses you can use the following Zenodo reference: [10.5281/zenodo.8207523](https://zenodo.org/record/8207523)
 
 ## Help
 For bugs or problems contact cristina.gil@tum.de or open an issue [here](https://github.com/crisglav/eeg-pipeline)
