@@ -1,0 +1,129 @@
+Brain Vision Data Exchange Header File Version 1.0
+; Data created by the BrainVision Recorder for CGX - V. 2.00.0010
+
+[Common Infos]
+Codepage=UTF-8
+DataFile=sub-002_task-EC_eeg.eeg
+MarkerFile=sub-002_task-EC_eeg.vmrk
+DataFormat=BINARY
+; Data orientation: MULTIPLEXED=ch1,pt1, ch2,pt1 ...
+DataOrientation=MULTIPLEXED
+NumberOfChannels=29
+; Sampling interval in microseconds
+SamplingInterval=2000
+
+[Binary Infos]
+BinaryFormat=IEEE_FLOAT_32
+
+[Channel Infos]
+; Each entry: Ch<Channel number>=<Name>,<Reference channel name>,
+; <Resolution in "Unit">,<Unit>, Future extensions..
+; Fields are delimited by commas, some fields might be omitted (empty).
+; Commas in channel names are coded as "\1".
+Ch1=Fp1,,0.0993411,μV
+Ch2=Fpz,,0.0993411,μV
+Ch3=Fp2,,0.0993411,μV
+Ch4=AF7,,0.0993411,μV
+Ch5=AF8,,0.0993411,μV
+Ch6=F7,,0.0993411,μV
+Ch7=F3,,0.0993411,μV
+Ch8=Fz,,0.0993411,μV
+Ch9=F4,,0.0993411,μV
+Ch10=F8,,0.0993411,μV
+Ch11=FC5,,0.0993411,μV
+Ch12=FC6,,0.0993411,μV
+Ch13=T7,,0.0993411,μV
+Ch14=C3,,0.0993411,μV
+Ch15=Cz,,0.0993411,μV
+Ch16=C4,,0.0993411,μV
+Ch17=T8,,0.0993411,μV
+Ch18=CP5,,0.0993411,μV
+Ch19=CP6,,0.0993411,μV
+Ch20=P7,,0.0993411,μV
+Ch21=P3,,0.0993411,μV
+Ch22=Pz,,0.0993411,μV
+Ch23=P4,,0.0993411,μV
+Ch24=P8,,0.0993411,μV
+Ch25=PO7,,0.0993411,μV
+Ch26=PO8,,0.0993411,μV
+Ch27=O1,,0.0993411,μV
+Ch28=Oz,,0.0993411,μV
+Ch29=O2,,0.0993411,μV
+
+[Comment]
+BrainVision Recorder for CGX - V. 2.00.0010
+Amplifier: Quick-32r
+
+A m p l i f i e r  S e t u p
+============================
+
+Number of channels:     29
+Sampling rate [Hz]:     500
+Sampling interval [µs]: 2000
+
+Channels
+--------
+#     Name                Phys. chn. Resolution / unit 
+1     Fp1                 8          0.0993411         μV      
+2     Fpz                 3          0.0993411         μV      
+3     Fp2                 26         0.0993411         μV      
+4     AF7                 2          0.0993411         μV      
+5     AF8                 30         0.0993411         μV      
+6     F7                  4          0.0993411         μV      
+7     F3                  27         0.0993411         μV      
+8     Fz                  5          0.0993411         μV      
+9     F4                  9          0.0993411         μV      
+10    F8                  28         0.0993411         μV      
+11    FC5                 29         0.0993411         μV      
+12    FC6                 7          0.0993411         μV      
+13    T7                  6          0.0993411         μV      
+14    C3                  25         0.0993411         μV      
+15    Cz                  13         0.0993411         μV      
+16    C4                  10         0.0993411         μV      
+17    T8                  24         0.0993411         μV      
+18    CP5                 15         0.0993411         μV      
+19    CP6                 12         0.0993411         μV      
+20    P7                  20         0.0993411         μV      
+21    P3                  18         0.0993411         μV      
+22    Pz                  22         0.0993411         μV      
+23    P4                  19         0.0993411         μV      
+24    P8                  21         0.0993411         μV      
+25    PO7                 23         0.0993411         μV      
+26    PO8                 14         0.0993411         μV      
+27    O1                  17         0.0993411         μV      
+28    Oz                  11         0.0993411         μV      
+29    O2                  16         0.0993411         μV      
+
+==== Recording filters ==========
+Disabled
+
+Impedance [kOhm] at: 15:23:54
+Fp1:  44.9297
+Fpz:  41.7025
+Fp2:  83.5835
+AF7:  78.3853
+AF8:  90.2808
+F7:   553.207
+F3:   129.506
+Fz:   1004.48
+F4:   524.282
+F8:   675.323
+FC5:  224.478
+FC6:  1281.01
+T7:   602.885
+C3:   139.722
+Cz:   463.097
+C4:   204.519
+T8:   84.2962
+CP5:  141.005
+CP6:  104.465
+P7:   70.4861
+P3:   80.5594
+Pz:   376.657
+P4:   594.664
+P8:   77.3117
+PO7:  78.6281
+PO8:  221.199
+O1:   126.781
+Oz:   594.138
+O2:   225.372

@@ -1,0 +1,11 @@
+{
+	"Name":"Resting-state in chronic pain patients recorded with dry electrodes",
+	"BIDSVersion":"1.9.9",
+	"DatasetType":"raw",
+	"License":"CC BY-NC-SA",
+	"Authors":[
+		"Paul Zebhauser",
+		"Cristina Gil Avila",
+		"Markus Ploner"
+	]
+}
