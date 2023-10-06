@@ -2,12 +2,12 @@
 	"Ncores": 2,
 	"NICARepetitions": 10,
 
-	"EEGLabPath": "/rechenmagd4/toolboxes_and_functions/eeglab",
-	"FieldtripPath": "/rechenmagd4/toolboxes_and_functions/fieldtrip",
-	"BrainConnectivityToolboxPath" : "/rechenmagd4/toolboxes_and_functions/2019_03_03_BCT",
+	"EEGLabPath": "C:\\Users\\Mitarbeiter\\eeglab",
+	"FieldtripPath": "C:\\Users\\Mitarbeiter\\fieldtrip",
+	"BrainConnectivityToolboxPath" : "C:\\Users\\Mitarbeiter\\BCT\\2019_03_03_BCT",
 
-	"StudyName": "ChronicPain",
-	"RawDataPath": "/rechenmagd3/Experiments/2021_preprocessing/datasets/TaDinh-mini",
+	"StudyName": "demo_data",
+	"RawDataPath": "demo_data",
 	"PreprocessedDataPath": [],
 	"Session" : [""],
 	"Run" : [],

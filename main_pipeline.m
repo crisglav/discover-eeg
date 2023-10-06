@@ -120,6 +120,7 @@ for iRec = not_preprocessed
     % small differences in the bad segment detection. We permorn 10 times
     % the ICA, interpolation of bad channels and bad segment detection and 
     % we select the run that is closer to the 'average' bad segment mask
+    
     try
         EEGOrig = EEGtemp;
         nRep = params.NICARepetitions;
@@ -146,6 +147,7 @@ for iRec = not_preprocessed
             
             
             % 6. REMOVE BAD TIME SEGMENTS
+            try
             EEGtemp_dirty{iRep} = EEGtemp;
             EEGtemp = pop_clean_rawdata(EEGtemp,'FlatLineCriterion','off',...
                 'ChannelCriterion','off',...
@@ -158,21 +160,30 @@ for iRec = not_preprocessed
                 'WindowCriterionTolerances',params.WindowCriterionTolerances);
             EEGtemp.etc.eventsAfterCRD = EEGtemp.event; % Keep events for visualization later on.
             EEGtemp_clean{iRep} = EEGtemp;
+            catch
+                EEGtemp_clean{iRep} = [];
+            end
         end
         
         % Select the run closer to the 'average' bad time segments mask
-        etc = cellfun(@(x) x.etc, EEGtemp_clean, 'UniformOutput',0);
+        recmask = cellfun(@(x) isfield(x, 'etc'), EEGtemp_clean); 
+        if sum(recmask) ~= nRep
+            warning('Not all IC repetitions were successful');
+        end
+        etc = cellfun(@(x) x.etc, EEGtemp_clean(recmask), 'UniformOutput',0);
         csm = cell2mat(cellfun(@(x) x.clean_sample_mask, etc, 'UniformOutput',0)');
         csmAverage = mean(csm,1);
         distToAvg = sum(abs(csm - csmAverage), 2);
         [~,selRun] = min(distToAvg);
-        EEGtemp = EEGtemp_clean{selRun};
+        ix = find(recmask);
+        EEGtemp = EEGtemp_clean{ix(selRun)};
         clear EEGtemp_clean
     catch ME
         warning(['ICA not performed: ' ME.message ' Recording will be removed.']);
         to_delete{end +1} = EEGtemp.filename;
         continue;
     end
+    
     % 7. SEGMENT DATA INTO EPOCHS
     % EEGLab pop_epoch is designed to trim the data based on events. For
     % resting-state data, in which no events are defined, this function is
@@ -192,7 +203,6 @@ for iRec = not_preprocessed
         continue;
     end
     
-    
     % Save datafile, clear it from memory and store it in the ALLEEG structure
     if exist('clean_channel_mask','var'), EEGtemp.etc.clean_channel_mask = clean_channel_mask; end; clear 'clean_channel_mask';
     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
@@ -201,17 +211,6 @@ for iRec = not_preprocessed
     STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', params.StudyName, 'filepath', params.PreprocessedDataPath);
 
 end
-
-% PLOTTING PREPROCESSING
-% Visualization of detected bad channels. If you set 'FuseChanRej' on, the union of bad channels in all tasks is rejected!
-plot_badchannels(params,ALLEEG);
-% Visualization of rejected ICs
-plot_ICs(params,ALLEEG);
-% Visualization of rejected time segments
-plot_badtimesegments(params,ALLEEG);
-% Visualize number of clean epochs per recording
-plot_epochs(params,ALLEEG);
-
 % Delete recordings with no epochs remaining
 mask = matches({ALLEEG.filename},to_delete);
 ALLEEG(mask) = [];
@@ -224,12 +223,22 @@ STUDY.subject(mask) = [];
 % Save study
 STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [params.StudyName '-clean'], 'filepath', params.PreprocessedDataPath);
 
+% PLOTTING PREPROCESSING
+% Visualization of detected bad channels. If you set 'FuseChanRej' on, the union of bad channels in all tasks is rejected!
+plot_badchannels(params,ALLEEG);
+% Visualization of rejected ICs
+plot_ICs(params,ALLEEG);
+% Visualization of rejected time segments
+plot_badtimesegments(params,ALLEEG);
+% Visualize number of clean epochs per recording
+plot_epochs(params,ALLEEG);
+
 clear EEGtemp ALLEEG;
 
 %% ======= EXTRACTION OF BRAIN FEATURES =========
 
 % % You can start directly with preprocessed data in BIDS format by loading an EEGLAB STUDY
-% params = define_params('/rechenmagd3/Experiments/2021_preprocessing/datasets/vanDijk/derivatives_v2023_07_14/params.json');
+% params = define_params('demo_data/derivatives_v2023_10_05/params.json');
 % [STUDY, ALLEEG] = pop_loadstudy('filename', [params.StudyName '-clean.study'], 'filepath', params.PreprocessedDataPath);
 %%
 % % OPTIONAL - Visualization of corregistration of electroes and sources for one exemplary dataset (check that
