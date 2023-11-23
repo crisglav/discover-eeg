@@ -32,7 +32,7 @@ Brain features in the source space are computed separately for four frequency ba
 
 ## Getting started
 ### Dependencies
-* Matlab with Signal Processing and Statistical Toolbox, Machine Learning Toolbox, and Parallel Computing Toolbox (optional). The code was developed and tested on Matlab R2020b, and also tested in R2022a.
+* Matlab with Signal Processing Toolbox, Statistics and Machine Learning Toolbox, and Parallel Computing Toolbox (optional). The code was developed and tested on Matlab R2020b, and also tested in R2022a.
 * EEGLab (Developed and tested with v2022.0) The following EEGlab plugins need to be installed:
     * [bids-matlb-tool](https://github.com/sccn/bids-matlab-tools) v6.1 
     * [bva-io](https://github.com/arnodelorme/bva-io) if your data is in BVA format v1.7
