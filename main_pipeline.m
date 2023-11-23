@@ -2,7 +2,6 @@
 % 
 % Cristina Gil, TUM, cristina.gil@tum.de, 25.07.2022
 
-
 clear all; close all;
 rng('default'); % For reproducibility - See discussion in https://sccn.ucsd.edu/pipermail/eeglablist/2022/016932.html
 
@@ -70,7 +69,7 @@ end
 
 %% ======== PREPROCESSING =========
 % Find the latest preprocessed recording and start with the next one
-not_preprocessed = find(cellfun(@isempty, {ALLEEG.setname}));
+not_preprocessed = find(~cellfun(@(x) strcmp(x,'preprocessed'), {ALLEEG.comments}));
 to_delete = {};
 
 % Loop over the recordings that have not been preprocessed
@@ -204,6 +203,7 @@ for iRec = not_preprocessed
     end
     
     % Save datafile, clear it from memory and store it in the ALLEEG structure
+    EEGtemp.comments = 'preprocessed';
     if exist('clean_channel_mask','var'), EEGtemp.etc.clean_channel_mask = clean_channel_mask; end; clear 'clean_channel_mask';
     EEGtemp = pop_saveset(EEGtemp, 'savemode', 'resave');
     EEGtemp.data = 'in set file';
