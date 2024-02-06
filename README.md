@@ -56,6 +56,9 @@ Brain features in the source space are computed separately for four frequency ba
 * Download the [BCT toolbox](https://sites.google.com/site/bctnet/)
 * Update the path of the toolboxes in `params_example.json`
 
+### Test data
+You can download an EEG test dataset in BIDS format here: https://osf.io/mru42/
+
 ### Executing the pipeline
 * Read the `params_example.json` file and change the settings according to your needs. The minimum parameters that need to be specified are: 
     * Your study name
