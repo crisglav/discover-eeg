@@ -80,6 +80,13 @@ else
         end
         
     else    
+        % EEGLab uses their own coordinate system. When we looked for the
+        % electrode positions in EEGLab from the MNI template, then they
+        % were transformed EEGlab coordinate system. That is the reason why
+        % the values of data.elec differ from elec_template.
+        % Best practice is to take the coordinates of the original
+        % template.
+        
         % Take the coordinates from the mni template
         elec_template = ft_read_sens('standard_1005.elc');
         channels = ismember(elec_template.label,data.label);   

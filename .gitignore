@@ -1,0 +1,12 @@
+*.asv
+*.mat
+*.svg
+*.bmp
+*.pdf
+external_functions/bayes_factor/
+parcellations/Schaefer2018_400Parcels*
+examples/plot_preprocessing_histograms.m
+examples/plot_raw_data.m
+params.json
+params_tens.json
+demo_data/

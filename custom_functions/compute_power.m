@@ -8,8 +8,10 @@ cfg.foilim = [1 100];
 cfg.method = 'mtmfft';
 cfg.taper = params.Taper;
 cfg.tapsmofrq = params.Tapsmofrq;
-cfg.pad = 5;
-cfg.padtype = 'zero';
+if ~isempty(params.Pad)
+    cfg.pad = params.Padding;
+    cfg.padtype = 'zero';
+end
 cfg.output = 'pow';
 cfg.keeptrials ='no';
 power = ft_freqanalysis(cfg, data);
