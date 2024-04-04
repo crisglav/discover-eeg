@@ -67,7 +67,7 @@ Preprocessing of event-related data is possible since v.1.1.0. Please note that 
 * Download the [BCT toolbox](https://sites.google.com/site/bctnet/)
 
 ### Test data
-You can download a resting-state EEG test dataset in BIDS format here: https://osf.io/mru42/
+You can download a resting-state EEG test dataset in BIDS format here: https://osf.io/xn5ye/
 
 ### Executing the pipeline
 * Copy the file `params_example.json` and rename it to `params.json`.
