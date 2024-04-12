@@ -239,7 +239,7 @@ end
 % FreqRes - OPTIONAL
 if params.BrainFeatExtr
     if(~isfield(params,'FreqRes') || isempty(params.FreqRes))
-        params.FreqRes = 1/EpochLength;
+        params.FreqRes = 1/params.EpochLength;
         warning('FreqRes was not specified. Using default 1/EpochLength: %0.3f',params.FreqRes);
     elseif ~isnumeric(params.FreqRes)
         error('FreqRes must be a number');
@@ -254,7 +254,7 @@ end
 if params.BrainFeatExtr
     if ~isfield(params,'Pad')
         params.Pad = [];
-    elseif ~isnumeric(params.Pad) || params.Pad <= params.EpochLength
+    elseif ~isnumeric(params.Pad) || any(params.Pad <= params.EpochLength)
         error('Pad must be a number higher than EpochLength.');
     elseif params.Pad ~= 1/params.FreqRes
         error('Pad is not the same as 1/FreqRes. Please specify one parameter or the other.')

@@ -9,7 +9,7 @@ cfg.method = 'mtmfft';
 cfg.taper = params.Taper;
 cfg.tapsmofrq = params.Tapsmofrq;
 if ~isempty(params.Pad)
-    cfg.pad = params.Padding;
+    cfg.pad = params.Pad;
     cfg.padtype = 'zero';
 end
 cfg.output = 'pow';
