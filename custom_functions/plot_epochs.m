@@ -37,7 +37,7 @@ for iBatch=1:nBatches
     % Bar plot
     f = figure('units','normalized','outerposition',[0 0 1 1]);
     bar(nEpochs(bmask));
-    xticks(1:2:nRec);
+    xticks(1:length(bmask));
     box off;
     set(gca,'xticklabel',ids(1:length(bmask)),'xticklabelrotation',45)
     ylabel('Number of clean epochs');
