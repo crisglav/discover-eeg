@@ -28,6 +28,7 @@ for iBatch=1:nBatches
     % Recording ids for this batch
     % For a short version of the recordings IDs: delete fields that are all the
     % same (e.g. if all sessions are ses-1)
+    orig_ids = s_ids(bmask);
     splitted_ids = cellfun(@(x) strsplit(x,'_'),s_ids(bmask),'UniformOutput',false);
     splitted_ids = vertcat(splitted_ids{:});
     mask = ones(1,size(splitted_ids,2));
@@ -63,7 +64,7 @@ for iBatch=1:nBatches
     h.YLabel = 'Channels';
     
     saveas(f,fullfile(params.FiguresPreprocessingPath, ['badchans_' num2str(iBatch) '.svg']),'svg');
-    save(fullfile(params.FiguresPreprocessingPath, ['badchans_' num2str(iBatch) '.mat']),'badchans','ids','chanlabels');
+    save(fullfile(params.FiguresPreprocessingPath, ['badchans_' num2str(iBatch) '.mat']),'badchans','orig_ids','chanlabels');
 end
 
 end

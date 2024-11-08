@@ -22,6 +22,7 @@ for iBatch=1:nBatches
     % Recording ids for this batch
     % For a short version of the recordings IDs: delete fields that are all the
     % same (e.g. if all sessions are ses-1)
+    orig_ids = s_ids(bmask);
     splitted_ids = cellfun(@(x) strsplit(x,'_'),s_ids(bmask),'UniformOutput',false);
     splitted_ids = vertcat(splitted_ids{:});
     mask = ones(1,size(splitted_ids,2));
@@ -44,6 +45,6 @@ for iBatch=1:nBatches
     title('Number of epochs after preprocessing');
     saveas(f,fullfile(params.FiguresPreprocessingPath, ['Epochs_ ' num2str(iBatch) '.svg']),'svg');
     nEpochs_batch = nEpochs(bmask);
-    save(fullfile(params.FiguresPreprocessingPath, ['Epochs_' num2str(iBatch) '.mat']),'nEpochs_batch');
+    save(fullfile(params.FiguresPreprocessingPath, ['Epochs_' num2str(iBatch) '.mat']),'nEpochs_batch','orig_ids');
 end
 end
