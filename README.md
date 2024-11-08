@@ -45,12 +45,12 @@ Preprocessing of event-related data is possible since v.1.1.0. Please note that 
 ### Dependencies
 * Matlab with Signal Processing Toolbox, Statistics and Machine Learning Toolbox, and Parallel Computing Toolbox (optional). The code was developed and tested on Matlab R2020b, and also tested in R2022a.
 * EEGLab (Developed and tested with v2022.0) The following EEGlab plugins need to be installed:
-    * [bids-matlb-tool](https://github.com/sccn/bids-matlab-tools) v6.1 
+    * [bids-matlb-tool](https://github.com/sccn/bids-matlab-tools) [v6.1](https://github.com/crisglav/bids-matlab-tools/releases/tag/v6.1)
     * [bva-io](https://github.com/arnodelorme/bva-io) if your data is in BVA format v1.7
     * [clean_rawdata](https://github.com/sccn/clean_rawdata) v2.7
     * [cleanline](https://github.com/sccn/cleanline) v2.0
     * [dipfilt](https://github.com/sccn/dipfit) v4.3
-    * [firfilt](https://widmann/firfilt) v2.4
+    * [firfilt](https://github.com/widmann/firfilt/releases/tag/v2.4) v2.4
     * [ICLabel](https://github.com/sccn/ICLabel) v1.3
 * Fieldtrip (tested with fieldtrip-20220104)
 * Brain connectivity toolbox (Developed and tested with version 2019_03_03) 
