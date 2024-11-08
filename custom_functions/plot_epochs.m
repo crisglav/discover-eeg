@@ -43,6 +43,7 @@ for iBatch=1:nBatches
     ylabel('Number of clean epochs');
     title('Number of epochs after preprocessing');
     saveas(f,fullfile(params.FiguresPreprocessingPath, ['Epochs_ ' num2str(iBatch) '.svg']),'svg');
-    save(fullfile(params.FiguresPreprocessingPath, ['Epochs_' num2str(iBatch) '.mat']),'nEpochs');
+    nEpochs_batch = nEpochs(bmask);
+    save(fullfile(params.FiguresPreprocessingPath, ['Epochs_' num2str(iBatch) '.mat']),'nEpochs_batch');
 end
 end
