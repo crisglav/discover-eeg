@@ -134,12 +134,16 @@ for iRec = not_preprocessed
     end
     
     % 3. REREFERENCE TO AVERAGE REFERENCE
+    % Note: bad channels from point 2 are interpolated before re-refencing to
+    % the average, but these interpolated channels are not carried along.
     try
         if strcmp(params.AddRefChannel,'on')
             EEGtemp = pop_reref(EEGtemp,[],'interpchan',[],'refloc', EEGtemp.chaninfo.nodatchans);
         else
             EEGtemp = pop_reref(EEGtemp,[],'interpchan',[]);
         end
+        % Do not track interpolated electrodes for re-referencing
+        EEGtemp.chaninfo.removedchans = EEGtemp.chaninfo.removedchans(~ismember({EEGtemp.chaninfo.removedchans.ref}, 'average'));
         fprintf(fid,'3. Re-referencing performed. \n');
     catch ME
         fprintf(fid,['--- Re-referencing not performed: ' ME.message '. \n']);
@@ -168,7 +172,7 @@ for iRec = not_preprocessed
     try
         nRep = params.NICARepetitions;
         EEGtemp_clean = cell(1,nRep);
-        parfor iRep =1:nRep
+        for iRep =1:nRep
             % Steps 4, 5, and 6
             EEGtemp_clean{iRep} = preprocessing_ICA(EEGtemp,params);
         end
