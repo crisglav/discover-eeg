@@ -172,7 +172,7 @@ for iRec = not_preprocessed
     try
         nRep = params.NICARepetitions;
         EEGtemp_clean = cell(1,nRep);
-        for iRep =1:nRep
+        parfor iRep =1:nRep
             % Steps 4, 5, and 6
             EEGtemp_clean{iRep} = preprocessing_ICA(EEGtemp,params);
         end
