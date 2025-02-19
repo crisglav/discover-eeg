@@ -17,6 +17,7 @@ end
 % 5. INTERPOLATE MISSING CHANNELS
 try
     urchanlocs = EEGtemp.urchanlocs;
+    [urchanlocs.ref] = deal('average'); % Keep average reference label
     l = length(urchanlocs);
     [~, iref] = setdiff({EEGtemp.chanlocs.labels},{EEGtemp.urchanlocs.labels}); % Handle reference in case it was added back
     if ~isempty(iref)
