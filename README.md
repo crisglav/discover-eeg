@@ -39,29 +39,28 @@ The accompanying publication in Scientific Data can be found [here](https://www.
 By default, brain features in the source space are computed separately for four frequency bands of interest (theta, alpha, beta, and gamma). 
 
 ### Preprocessing event-related data
-Preprocessing of event-related data is possible since v.1.1.0. Please note that for this type of data, the extraction of brain features is omitted. During event-related data preprocessing, downsampling is not performed (DownsamplingRate: []), bad time segments are not rejected (RejectBadTimeSegments: "off"), and data is not segmented into epochs (EpochLength: []). In addition, the parameters PreprocEventData, EventMarker and EventBounds have to be specified. Please see `params_example_preproc_event.json` for an example.
+Preprocessing of event-related data is possible since v.1.1.0. Please note that for this type of data, the extraction of brain features is omitted. During event-related data preprocessing, downsampling is not performed (DownsamplingRate: []), bad time segments are not rejected (RejectBadTimeSegments: "off"), and data is not segmented into epochs (EpochLength: []). In addition, the parameters PreprocEventData, EventMarker and EventBounds have to be specified. Please see `params_example_preproc_event.json` for an example. In EEGLAB’s advanced preferences the single precision flag has to be set to False.
 
 ## Getting started
 ### Dependencies
-* Matlab with Signal Processing Toolbox, Statistics and Machine Learning Toolbox, and Parallel Computing Toolbox (optional). The code was developed and tested on Matlab R2020b, and also tested in R2022a.
-* EEGLab (Developed and tested with v2022.0) The following EEGlab plugins need to be installed:
+The code was developed and tested on Matlab R2020b, EEGLAB v2022.0, fieldtrip-20220104, and BCT 2019_03_03.
+* Matlab with Signal Processing Toolbox, Statistics and Machine Learning Toolbox, and Parallel Computing Toolbox (optional). 
+* EEGLAB. The following EEGlab plugins need to be installed:
     * [bids-matlb-tool](https://github.com/sccn/bids-matlab-tools) [v6.1](https://github.com/crisglav/bids-matlab-tools/releases/tag/v6.1)
     * [bva-io](https://github.com/arnodelorme/bva-io) if your data is in BVA format v1.7
-    * [clean_rawdata](https://github.com/sccn/clean_rawdata) v2.7
+    * [clean_rawdata](https://github.com/sccn/clean_rawdata) v2.7. Download from Github
     * [cleanline](https://github.com/sccn/cleanline) v2.0
     * [dipfilt](https://github.com/sccn/dipfit) v4.3
     * [firfilt](https://github.com/widmann/firfilt/releases/tag/v2.4) v2.4
     * [ICLabel](https://github.com/sccn/ICLabel) v1.3
-* Fieldtrip (tested with fieldtrip-20220104)
-* Brain connectivity toolbox (Developed and tested with version 2019_03_03) 
+* Fieldtrip
+* Brain connectivity toolbox
 
 ### Installation
 * Download the pipeline code [here](https://github.com/crisglav/eeg-pipeline)
 * Download Matlab and the above-listed Matlab toolboxes
-* Download [EEGLab](https://sccn.ucsd.edu/eeglab/download.php)
-    * Download the aforementioned EEGlab plugins via the EEGLab GUI or in the provided URL. If you choose the second option, add them to the eeglab/plugins folder. 
-      Note that in eeglab/plugins there must not be a same-named subfolder for any plugin (e.g. eeglab/plugins/clean_rawdata-master/clean_rawdata is NOT correct;
-      it should be eeglab/plugins/clean_rawdata).
+* Download [EEGLAB](https://sccn.ucsd.edu/eeglab/download.php)
+    * Download the aforementioned EEGLAB plugins via the EEGLab GUI or from the provided link and add them to the eeglab/plugins folder. The plugin clean_rawdata must be downloaded from GitHub.
     * Change [EEGLab preferences](https://eeglab.org/tutorials/misc/EEGLAB_option_menu.html) in EEGLab GUI. Make sure that the box 'Keep at most one dataset in memory' is selected.
 * Download [FieldTrip](https://www.fieldtriptoolbox.org/download.php)
 * Download the [BCT toolbox](https://sites.google.com/site/bctnet/)
